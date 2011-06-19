@@ -26,6 +26,7 @@
 import socket
 import os
 import unittest
+from tempfile import mkdtemp
 from time import sleep
 from datetime import datetime, timedelta, date
 from threading import Thread
@@ -38,7 +39,8 @@ class MockBirdTestBase(unittest.TestCase):
     control running on a unix socket"""
     
     def setUp(self):
-        self.socket_file = "/tmp/birdmock" # FIXME
+        tmp_path = mkdtemp()
+        self.socket_file = "%s/birdmock" % tmp_path
         
         mock_bird = MockBird(socket_file=self.socket_file)
         mock_bird.start()

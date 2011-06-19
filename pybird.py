@@ -260,16 +260,23 @@ class PyBird(object):
             
         
     def _send_query(self, query):
+        """Open a socket to the BIRD control socket, send the query and get
+        the response.
+        FIXME: does not time out when there is no reply."""
         sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         sock.connect(self.socket_file)
         sock.send(query)
         
-        # FIXME this may give incomplete data
-        data = sock.recv(10240)
+        data = sock.recv(1024)
+        while data [-5:] != "0000\n":
+            data += sock.recv(1024)
+            
         sock.close()
         return str(data)
         
         
     def _clean_input(self, input):
+        """Clean the input string of anything not plain alphanumeric chars,
+        return the cleaned string."""
         return self.clean_input_re.sub('', input).strip()
 
