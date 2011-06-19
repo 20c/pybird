@@ -56,6 +56,9 @@ class PyBirdTestCase(MockBirdTestBase):
 
 
     def test_all_peer_status(self):
+        """Test that we can get a list of all peers and their status.
+        Testing of individual fields here is limited, that's mostly done
+        in test_specific_peer_status()."""
         statuses = self.pybird.get_peer_status()
         
         self.assertEquals(statuses[0]['name'], "PS1")
@@ -65,6 +68,8 @@ class PyBirdTestCase(MockBirdTestBase):
 
 
     def test_specific_peer_status(self):
+        """Test the retrieval of specific peer info, and check all the fields
+        for correctness."""
         ps2_status = self.pybird.get_peer_status("PS2")
         self.assertTrue(ps2_status['up'])
         
@@ -95,6 +100,8 @@ class PyBirdTestCase(MockBirdTestBase):
 
 
     def test_cleans_peer_name(self):
+        """Test that improper characters are removed from the peer_name field
+        before it is sent to BIRD."""
         ps1_status = self.pybird.get_peer_status("PS1{\"'}")
         self.assertFalse(ps1_status['up'])
         

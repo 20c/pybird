@@ -30,6 +30,8 @@ class PyBird(object):
     ignored_field_numbers = [0001, 2002, 0000]
     
     def __init__(self, socket_file):
+        """Basic pybird setup.
+        Required argument: socket_file: full path to the BIRD control socket."""
         self.socket_file = socket_file
         self.clean_input_re = re.compile('\W+')
         self.field_number_re = re.compile('^(\d+)[ -]')
@@ -37,6 +39,18 @@ class PyBird(object):
 
 
     def get_peer_status(self, peer_name=None):
+        """Get the status of all peers or a specific peer.
+
+        Optional argument: peer_name: case-sensitive full name of a peer,
+        as configured in BIRD.
+        
+        If no argument is given, returns a list of peers - each peer represented
+        by a dict with fields. See README for a full list.
+        
+        If a peer_name argument is given, returns a single peer, represented
+        as a dict.
+        """
+        
         if peer_name:
             query = 'show protocols all "%s"' % self._clean_input(peer_name)
         else:
@@ -55,6 +69,7 @@ class PyBird(object):
 
 
     def _parse_peer_data(self, data, data_contains_detail):
+        """Parse the data from BIRD to find peer information."""
         lineiterator = iter(data.splitlines())
         peers = []
         
