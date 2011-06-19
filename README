@@ -1,0 +1,56 @@
+.. -*- restructuredtext -*-
+
+==========================================
+pybird - BIRD interface handler for Python
+==========================================
+
+PyBird is a Python interface to the BIRD Internet Routing Daemon's UNIX control
+socket, handling the socket connections and parsing the output.
+
+In it's current state, you can use it to query the status of specific or all
+BGP peers.
+
+
+Usage example
+=============
+
+::
+    >>> from pybird import PyBird
+    >>> pybird = PyBird(socket_file='/var/run/bird.ctl')
+    >>> peer_state = pybird.get_peer_status('KPN')
+    >>> peer_state['up']
+    True
+    >>> peer_state['import_updates_received']
+    4214
+    >>> peer_state['last_change']
+    datetime.datetime(2011, 6, 19, 19, 57, 0, 0)
+
+You can also call ``get_peer_status()`` without a peer name, to get an array
+with all the BGP peers.
+
+Full field list
+===============
+
+All fields that are decoded, if present:
+
+- ``name``: Name as configured in BIRD
+- ``protocol``: Currently always "BGP"
+- ``last_change``: Last state change as a ``datetime.datetime`` object
+- ``state``: String of the peer status, e.g. "Established" or "Passive"
+- ``up``: Boolean, True if session is Established
+- ``routes_imported``: Number of imported routes
+- ``routes_exported``: Number of exported routes
+- ``router_id``: BGP router id
+
+And all combinations of:
+``[import,export]_[updates,withdraws]_[received,rejected,filtered,ignored,accepted]``
+which BIRD supports.
+
+
+Test suite
+==========
+
+There is a series of tests in ``tests.py``. This includes a ``MockBird``: a
+mocked BIRD instance, with fixed but real responses, that listens on a real
+UNIX socket. This means the tests do not only test parsing, but also socket
+interaction.

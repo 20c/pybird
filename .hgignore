@@ -1,0 +1,12 @@
+syntax: glob
+*.pyc
+fcgi.pid
+process.pid
+.coverage
+.sass-cache
+lib
+bin
+include
+.Python
+db.sqlite
+build
