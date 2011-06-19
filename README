@@ -14,7 +14,6 @@ BGP peers.
 Usage example
 =============
 
-::
     >>> from pybird import PyBird
     >>> pybird = PyBird(socket_file='/var/run/bird.ctl')
     >>> peer_state = pybird.get_peer_status('KPN')
