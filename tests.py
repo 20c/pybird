@@ -67,6 +67,12 @@ class PyBirdTestCase(MockBirdTestBase):
         self.assertEquals(statuses[1]['state'], "Established")
 
 
+    def test_nonexistant_peer_status(self):
+        """Test that we get None if the peer did not exist."""
+        status = self.pybird.get_peer_status("HAMSTER")
+        self.assertEquals(status, None)
+
+
     def test_specific_peer_status(self):
         """Test the retrieval of specific peer info, and check all the fields
         for correctness."""
@@ -111,7 +117,7 @@ class MockBirdTestCase(MockBirdTestBase):
      actually works. Can save a lot of work in debugging."""
     
     def test_show_protocols_mocked_correctly(self):
-        data = self._send_query("show protocols")
+        data = self._send_query("show protocols\n")
         self.assertEquals(data,
             "0001 BIRD 1.3.0 ready.\n"
             "2002-name     proto    table    state  since       info\n"
@@ -120,11 +126,11 @@ class MockBirdTestCase(MockBirdTestBase):
             " PS2      BGP      T_PS2    up     14:20       Established   \n"
             " P_PS1    Pipe     master   up     Jun13       => T_PS1\n"
             " PS1      BGP      T_PS1    start  Jun13       Passive\n"
-            "0000"        
+            "0000 \n"        
         )
 
     def test_show_protocols_all_mocked_correctly(self):
-        data = self._send_query("show protocols all")
+        data = self._send_query("show protocols all\n")
         self.assertEquals(data, """
 0001 BIRD 1.3.0 ready.
 2002-name     proto    table    state  since       info
@@ -196,7 +202,7 @@ class MockBirdTestCase(MockBirdTestBase):
       Hold timer:       112/180
       Keepalive timer:  16/60
     
-0000
+0000 
 """
         )
         
@@ -216,10 +222,10 @@ class MockBird(Thread):
     for IPv4 and IPv6. This Mock BIRD only accepts one query per connect."""
     
     responses = {
-        'show protocols all "HAMSTER"':
+        'show protocols all "hamster"\n':
             "0001 BIRD 1.3.0 ready.\n"
             "8003 No protocols match\n",
-        'show protocols':
+        'show protocols\n':
             "0001 BIRD 1.3.0 ready.\n"
             "2002-name     proto    table    state  since       info\n"
             "1002-device1  Device   master   up     14:07       \n"
@@ -227,8 +233,8 @@ class MockBird(Thread):
             " PS2      BGP      T_PS2    up     14:20       Established   \n"
             " P_PS1    Pipe     master   up     Jun13       => T_PS1\n"
             " PS1      BGP      T_PS1    start  Jun13       Passive\n"
-            "0000",
-        'show protocols all': """
+            "0000 \n",
+        'show protocols all\n': """
 0001 BIRD 1.3.0 ready.
 2002-name     proto    table    state  since       info
 1002-device1  Device   master   up     Jun13       
@@ -299,9 +305,9 @@ class MockBird(Thread):
       Hold timer:       112/180
       Keepalive timer:  16/60
     
-0000
+0000 
 """,
-        'show protocols all "ps2"': """
+        'show protocols all "ps2"\n': """
 0001 BIRD 1.3.0 ready.
 2002-name     proto    table    state  since       info
 1002-PS2      BGP      T_PS2    up     14:20       Established   
@@ -326,9 +332,9 @@ class MockBird(Thread):
      Hold timer:       121/180
      Keepalive timer:  20/60
 
-0000
+0000 
 """,
-'show protocols all "ps1"': """
+        'show protocols all "ps1"\n': """
 0001 BIRD 1.3.0 ready.
 2002-name     proto    table    state  since       info
 1002-PS1      BGP      T_PS1    start  Jun13       Passive       
@@ -344,7 +350,7 @@ class MockBird(Thread):
     Export withdraws:            0        ---        ---        ---          0
   BGP state:          Passive
 
-0000
+0000 
 """
     }
     

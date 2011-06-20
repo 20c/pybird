@@ -48,7 +48,7 @@ class PyBird(object):
         by a dict with fields. See README for a full list.
         
         If a peer_name argument is given, returns a single peer, represented
-        as a dict.
+        as a dict. If the peer is not found, returns None.
         """
         
         if peer_name:
@@ -61,8 +61,10 @@ class PyBird(object):
         
         if not peer_name:
             return peers
-            
-        if len(peers) != 1:
+        
+        if len(peers) == 0:
+            return None
+        elif len(peers) > 1:
             raise ValueError("Searched for a specific peer, but got multiple returned from BIRD?")
         else:
             return peers[0]
@@ -280,10 +282,10 @@ class PyBird(object):
         FIXME: does not time out when there is no reply."""
         sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         sock.connect(self.socket_file)
-        sock.send(query)
+        sock.send(query+"\n")
         
         data = sock.recv(1024)
-        while data [-5:] != "0000\n":
+        while (data.find("\n0000") == -1) and (data.find("\n8003") == -1):
             data += sock.recv(1024)
             
         sock.close()
