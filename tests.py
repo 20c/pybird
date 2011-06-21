@@ -110,6 +110,12 @@ class PyBirdTestCase(MockBirdTestBase):
         before it is sent to BIRD."""
         ps1_status = self.pybird.get_peer_status("PS1{\"'}")
         self.assertFalse(ps1_status['up'])
+
+
+    def test_handles_no_output(self):
+        """Test that the code detects that it reached the end of the output
+        without finding proper data."""
+        self.assertRaises(ValueError, self.pybird.get_peer_status, "no output")
         
        
 class MockBirdTestCase(MockBirdTestBase):
@@ -351,7 +357,8 @@ class MockBird(Thread):
   BGP state:          Passive
 
 0000 
-"""
+""",
+        'show protocols all "nooutput"\n': "",
     }
     
     def __init__(self, socket_file):

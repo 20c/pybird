@@ -24,6 +24,7 @@
 
 import re
 import socket
+import select
 from datetime import datetime, timedelta, date
 
 class PyBird(object):
@@ -283,10 +284,15 @@ class PyBird(object):
         sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         sock.connect(self.socket_file)
         sock.send(query+"\n")
-        
-        data = sock.recv(1024)
+
+        data = ''
+        prev_data = None
+
         while (data.find("\n0000") == -1) and (data.find("\n8003") == -1):
             data += sock.recv(1024)
+            if data == prev_data:
+                raise ValueError("Could not read additional data from BIRD")
+            prev_data = data
             
         sock.close()
         return str(data)
