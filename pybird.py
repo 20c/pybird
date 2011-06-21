@@ -280,7 +280,7 @@ class PyBird(object):
     def _send_query(self, query):
         """Open a socket to the BIRD control socket, send the query and get
         the response.
-        FIXME: does not time out when there is no reply."""
+        """
         sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         sock.connect(self.socket_file)
         sock.send(query+"\n")
