@@ -119,13 +119,16 @@ class PyBirdTestCase(MockBirdTestBase):
     def test_specific_peer_prefixes_announced(self):
         """Test the retrieval of prefixes announced by a peer."""
         ps1_prefixes = self.pybird.get_peer_prefixes_announced("PS1")
-        print ps1_prefixes
+        self.assertEquals(len(ps1_prefixes), 2)
 
 
     def test_specific_peer_prefixes_accepted(self):
         """Test the retrieval of prefixes announced by a peer."""
         ps1_prefixes = self.pybird.get_peer_prefixes_accepted("PS1")
-        print ps1_prefixes
+        self.assertEquals(len(ps1_prefixes), 1)
+        
+        self.assertEquals(ps1_prefixes[0]['origin'], 'IGP')
+        self.assertEquals(ps1_prefixes[0]['as_path'], '8954 8283')
 
 
     def test_cleans_peer_name(self):
