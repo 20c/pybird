@@ -39,7 +39,7 @@ class PyBird(object):
         self.field_number_re = re.compile('^(\d+)[ -]')
         self.routes_field_re = re.compile('(\d+) imported, (\d+) exported')
 
-#
+
     def get_peer_prefixes_announced(self, peer_name):
         """Get prefixes announced by a specific peer, without applying
         filters - i.e. this includes routes which were not accepted"""
@@ -55,6 +55,18 @@ class PyBird(object):
         query = "show route all protocol %s" % self._clean_input(peer_name)
         data = self._send_query(query)
         return self._parse_route_data(data)
+
+
+    def get_peer_prefixes_rejected(self, peer_name):
+        announced = self.get_peer_prefixes_announced(peer_name)
+        accepted = self.get_peer_prefixes_accepted(peer_name)
+        
+        announced_prefixes = [i['prefix'] for i in announced]
+        accepted_prefixes = [i['prefix'] for i in accepted]
+        
+        rejected_prefixes = [item for item in announced_prefixes if not item in accepted_prefixes]
+        rejected_routes = [item for item in announced if item['prefix'] in rejected_prefixes]
+        return rejected_routes
 
 
     def _parse_route_data(self, data):

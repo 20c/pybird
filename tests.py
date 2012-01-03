@@ -118,17 +118,24 @@ class PyBirdTestCase(MockBirdTestBase):
 
     def test_specific_peer_prefixes_announced(self):
         """Test the retrieval of prefixes announced by a peer."""
-        ps1_prefixes = self.pybird.get_peer_prefixes_announced("PS1")
-        self.assertEquals(len(ps1_prefixes), 2)
+        announced_prefixes = self.pybird.get_peer_prefixes_announced("PS1")
+        self.assertEquals(len(announced_prefixes), 2)
 
 
     def test_specific_peer_prefixes_accepted(self):
         """Test the retrieval of prefixes announced by a peer."""
-        ps1_prefixes = self.pybird.get_peer_prefixes_accepted("PS1")
-        self.assertEquals(len(ps1_prefixes), 1)
+        accepted_prefixes = self.pybird.get_peer_prefixes_accepted("PS1")
+        self.assertEquals(len(accepted_prefixes), 1)
+
+        self.assertEquals(accepted_prefixes[0]['origin'], 'IGP')
+        self.assertEquals(accepted_prefixes[0]['as_path'], '8954 8283')
         
-        self.assertEquals(ps1_prefixes[0]['origin'], 'IGP')
-        self.assertEquals(ps1_prefixes[0]['as_path'], '8954 8283')
+
+    def test_specific_peer_prefixes_rejected(self):
+        """Test the retrieval of prefixes rejected from a peer."""
+        rejected_prefixes = self.pybird.get_peer_prefixes_rejected("PS1")
+        self.assertEquals(len(rejected_prefixes), 1)
+        self.assertEquals(rejected_prefixes[0]['as_path'], '8954 20144')
 
 
     def test_cleans_peer_name(self):
