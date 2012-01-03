@@ -116,6 +116,16 @@ class PyBirdTestCase(MockBirdTestBase):
         self.assertEquals(ps1_status['state'], "Passive")
 
 
+    def test_specific_peer_prefixes_announced(self):
+        """Test the retrieval of prefixes announced by a peer."""
+        ps1_prefixes = self.pybird.get_peer_prefixes_announced("PS1")
+
+
+    def test_specific_peer_prefixes_accepted(self):
+        """Test the retrieval of prefixes announced by a peer."""
+        ps1_prefixes = self.pybird.get_peer_prefixes_accepted("PS1")
+
+
     def test_cleans_peer_name(self):
         """Test that improper characters are removed from the peer_name field
         before it is sent to BIRD."""
@@ -361,7 +371,35 @@ class MockBird(Thread):
 
 0000 
 """,
-        'show protocols all "nooutput"\n': "",
+        'show route all protocol ps1\n': """
+0001 BIRD 1.3.3 ready.
+1007-2a02:898::/32      via 2001:7f8:1::a500:8954:1 on eth1 [PS2 12:46] * (100) [AS8283i]
+1008-	Type: BGP unicast univ
+1012-	BGP.origin: IGP
+ 	BGP.as_path: 8954 8283
+ 	BGP.next_hop: 2001:7f8:1::a500:8954:1 fe80::21f:caff:fe16:e02
+ 	BGP.local_pref: 100
+ 	BGP.community: (8954,620)
+0000
+""",
+        'show route table t_ps1 all protocol ps1\n': """
+0001 BIRD 1.3.3 ready.
+1007-2a02:898::/32      via 2001:7f8:1::a500:8954:1 on eth1 [PS2 12:46] * (100) [AS8283i]
+1008-	Type: BGP unicast univ
+1012-	BGP.origin: IGP
+ 	BGP.as_path: 8954 8283
+ 	BGP.next_hop: 2001:7f8:1::a500:8954:1 fe80::21f:caff:fe16:e02
+ 	BGP.local_pref: 100
+ 	BGP.community: (8954,620)
+1007-2001:500:3::/48    via 2001:7f8:1::a500:8954:1 on eth1 [PS2 13:14] * (100) [AS20144i]
+1008-	Type: BGP unicast univ
+1012-	BGP.origin: IGP
+ 	BGP.as_path: 8954 20144
+ 	BGP.next_hop: 2001:7f8:1::a500:8954:1 fe80::21f:caff:fe16:e02
+ 	BGP.local_pref: 100
+ 	BGP.community: (8954,620)
+0000 
+""",        'show protocols all "nooutput"\n': "",
     }
     
     def __init__(self, socket_file):
