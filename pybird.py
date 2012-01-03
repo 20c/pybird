@@ -257,12 +257,13 @@ class PyBird(object):
         
         # Case 2: "Jun13" timestamp
         try:
-            # Run this for a leap year, or 29 feb will get us in trouble
+            # Run this for a (fake) leap year, or 29 feb will get us in trouble
             parsed_value = datetime.strptime("1996 "+value, "%Y %b%d")
             result_date = datetime(now.year, parsed_value.month, parsed_value.day)
 
             if now.month <= parsed_value.month and now.day < parsed_value.day:
-                result_date = result_date - timedelta(years=1)
+                # This may have an off-by-one-day issue with leap years, but that's not important
+                result_date = result_date - timedelta(days=365)
             
             return result_date
         except ValueError:

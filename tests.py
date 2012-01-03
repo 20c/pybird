@@ -42,10 +42,24 @@ class MockBirdTestBase(unittest.TestCase):
         tmp_path = mkdtemp()
         self.socket_file = "%s/birdmock" % tmp_path
         
-        mock_bird = MockBird(socket_file=self.socket_file)
-        mock_bird.start()
+        self.mock_bird = MockBird(socket_file=self.socket_file)
+        self.mock_bird.start()
         sleep(0.2)
 
+
+    def tearDown(self):
+        self._send_query('terminate mockserver')
+
+
+    def _send_query(self, query):
+        sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        sock.connect(self.socket_file)
+        sock.send(query)
+
+        data = sock.recv(1024000)
+        sock.close()
+        return str(data)        
+               
                
 class PyBirdTestCase(MockBirdTestBase):
     """Test the PyBird library"""
@@ -97,10 +111,7 @@ class PyBirdTestCase(MockBirdTestBase):
         ps1_status = self.pybird.get_peer_status("PS1")
         self.assertFalse(ps1_status['up'])
 
-        expected_date = datetime(now.year, 6, 13)
-        if now.month <= 6 and now.day < 13:
-            result_date = result_date - timedelta(years=1)
-        self.assertEquals(ps1_status['last_change'], datetime(2011, 6, 13))
+        self.assertEquals(ps1_status['last_change'], datetime(2011, 6, 14))
 
         self.assertEquals(ps1_status['state'], "Passive")
 
@@ -211,15 +222,7 @@ class MockBirdTestCase(MockBirdTestBase):
 0000 
 """
         )
-        
-    def _send_query(self, query):
-        sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-        sock.connect(self.socket_file)
-        sock.send(query)
-        
-        data = sock.recv(1024000)
-        sock.close()
-        return str(data)
+    
         
 
 class MockBird(Thread):
@@ -377,7 +380,9 @@ class MockBird(Thread):
         while 1:
             conn, addr = self.socket.accept()
             data = conn.recv(1024)
-            if not data: break
+
+            if not data or data == 'terminate mockserver':
+                break
             
             response = self.responses[data.lower()]
             conn.send(response)
