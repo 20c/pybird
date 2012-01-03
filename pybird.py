@@ -25,10 +25,11 @@
 import re
 import socket
 import select
+import itertools
 from datetime import datetime, timedelta, date
 
 class PyBird(object):
-    ignored_field_numbers = [0001, 2002, 0000]
+    ignored_field_numbers = [0001, 2002, 0000, 1008]
     
     def __init__(self, socket_file):
         """Basic pybird setup.
@@ -38,7 +39,110 @@ class PyBird(object):
         self.field_number_re = re.compile('^(\d+)[ -]')
         self.routes_field_re = re.compile('(\d+) imported, (\d+) exported')
 
+#
+    def get_peer_prefixes_announced(self, peer_name):
+        """Get prefixes announced by a specific peer, without applying
+        filters - i.e. this includes routes which were not accepted"""
+        clean_peer_name = self._clean_input(peer_name)
+        query = "show route table T_%s all protocol %s" % (clean_peer_name, clean_peer_name)
+        data = self._send_query(query)
+        return self._parse_route_data(data)
 
+
+    def get_peer_prefixes_accepted(self, peer_name):
+        """Get prefixes announced by a specific peer, which were also
+        accepted by the filters"""
+        query = "show route all protocol %s" % self._clean_input(peer_name)
+        data = self._send_query(query)
+        return self._parse_route_data(data)
+
+
+    def _parse_route_data(self, data):
+        """Parse a blob like:
+            0001 BIRD 1.3.3 ready.
+            1007-2a02:898::/32      via 2001:7f8:1::a500:8954:1 on eth1 [PS2 12:46] * (100) [AS8283i]
+            1008-	Type: BGP unicast univ
+            1012-	BGP.origin: IGP
+             	BGP.as_path: 8954 8283
+             	BGP.next_hop: 2001:7f8:1::a500:8954:1 fe80::21f:caff:fe16:e02
+             	BGP.local_pref: 100
+             	BGP.community: (8954,620)
+            [....]
+            0000
+     	"""
+        lines = data.splitlines()
+        routes = []
+        
+        route_summary = None
+        
+        line_counter = -1
+        while line_counter < len(lines)-1:
+            line_counter += 1
+            line = lines[line_counter].strip()
+            (field_number, line) = self._extract_field_number(line)
+
+            if field_number in self.ignored_field_numbers:
+                continue
+            
+            if field_number == 1007:
+                route_summary = self._parse_route_summary(line)
+                    
+            route_detail = None
+            if field_number == 1012:
+                if not route_summary:
+                    # This is not detail of a BGP route
+                    continue
+                
+                # A route detail spans multiple lines, read them all     
+                route_detail_raw = []
+                while 'BGP.' in line:
+                    route_detail_raw.append(line)
+                    line_counter += 1
+                    line = lines[line_counter]
+                # this loop will have walked a bit too far, correct it
+                line_counter -= 1
+                
+                route_detail = self._parse_route_detail(route_detail_raw)
+            
+                # Save the summary+detail info in our result
+                route_detail.update(route_summary)
+                routes.append(route_detail)
+                # Do not use this summary again on the next run
+                route_summary = None
+                
+        return routes
+        
+        
+    def _parse_route_summary(self, line):
+        """Parse a line like:
+            2a02:898::/32      via 2001:7f8:1::a500:8954:1 on eth1 [PS2 12:46] * (100) [AS8283i]
+        """
+        # Note that split acts on sections of whitespace - not just single chars
+        elements = line.strip().split()
+        return {'prefix': elements[0], 'peer': elements[2]}
+
+        
+    def _parse_route_detail(self, lines):
+        """Parse a blob like:
+            1012-	BGP.origin: IGP
+             	BGP.as_path: 8954 8283
+             	BGP.next_hop: 2001:7f8:1::a500:8954:1 fe80::21f:caff:fe16:e02
+             	BGP.local_pref: 100
+             	BGP.community: (8954,620)
+     	"""
+     	attributes = {}
+     	
+     	for line in lines:
+     	    line = line.strip()
+     	    # remove 'BGP.'
+     	    line = line[4:]
+     	    
+     	    (key, value) = line.split(": ")
+     	    attributes[key] = value
+     	    
+     	return attributes
+    
+        
     def get_peer_status(self, peer_name=None):
         """Get the status of all peers or a specific peer.
 
@@ -120,24 +224,6 @@ class PyBird(object):
         return peers
         
             
-    def _extract_field_number(self, line):
-        """Parse the field type number from a line.
-        Line must start with a number, followed by a dash or space.
-        
-        Returns a tuple of (field_number, cleaned_line), where field_number
-        is None if no number was found, and cleaned_line is the line without
-        the field number, if applicable.
-        """
-        matches = self.field_number_re.findall(line)
-    
-        if len(matches):
-            field_number = int(matches[0])
-            cleaned_line = self.field_number_re.sub('', line)
-            return (field_number, cleaned_line)
-        else:
-            return (None, line)
-
-
     def _parse_peer_summary(self, line):
         """Parse the summary of a peer line, like:
         PS1      BGP      T_PS1    start  Jun13       Passive
@@ -236,7 +322,25 @@ class PyBird(object):
             return        
         result_dict[key_name] = int(value)
         
-        
+    
+    def _extract_field_number(self, line):
+        """Parse the field type number from a line.
+        Line must start with a number, followed by a dash or space.
+
+        Returns a tuple of (field_number, cleaned_line), where field_number
+        is None if no number was found, and cleaned_line is the line without
+        the field number, if applicable.
+        """
+        matches = self.field_number_re.findall(line)
+
+        if len(matches):
+            field_number = int(matches[0])
+            cleaned_line = self.field_number_re.sub('', line).strip('-')
+            return (field_number, cleaned_line)
+        else:
+            return (None, line)
+
+
     def _calculate_datetime(self, value):
         """Turn the BIRD date format into a python datetime."""
         now = datetime.now()
@@ -276,7 +380,6 @@ class PyBird(object):
         except ValueError:
             raise ValueError("Can not parse datetime: [%s]" % value)
         
-            
         
     def _send_query(self, query):
         """Open a socket to the BIRD control socket, send the query and get

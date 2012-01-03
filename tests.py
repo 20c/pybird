@@ -119,11 +119,13 @@ class PyBirdTestCase(MockBirdTestBase):
     def test_specific_peer_prefixes_announced(self):
         """Test the retrieval of prefixes announced by a peer."""
         ps1_prefixes = self.pybird.get_peer_prefixes_announced("PS1")
+        print ps1_prefixes
 
 
     def test_specific_peer_prefixes_accepted(self):
         """Test the retrieval of prefixes announced by a peer."""
         ps1_prefixes = self.pybird.get_peer_prefixes_accepted("PS1")
+        print ps1_prefixes
 
 
     def test_cleans_peer_name(self):
