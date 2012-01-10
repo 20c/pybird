@@ -29,7 +29,7 @@ import itertools
 from datetime import datetime, timedelta, date
 
 class PyBird(object):
-    ignored_field_numbers = [0001, 2002, 0000, 1008]
+    ignored_field_numbers = [0001, 2002, 0000, 1008, 0013]
     
     def __init__(self, socket_file):
         """Basic pybird setup.
@@ -39,6 +39,48 @@ class PyBird(object):
         self.field_number_re = re.compile('^(\d+)[ -]')
         self.routes_field_re = re.compile('(\d+) imported, (\d+) exported')
 
+
+    def get_bird_status(self):
+        """Get the status of the BIRD instance. Returns a dict with keys:
+        - router_id (string)
+        - last_reboot (datetime)
+        - last_reconfiguration (datetime)"""
+        query = "show status"
+        data = self._send_query(query)
+
+        line_iterator = iter(data.splitlines())
+        data = {}
+        
+        for line in line_iterator:
+            line = line.strip()
+            (field_number, line) = self._extract_field_number(line)
+
+            if field_number in self.ignored_field_numbers:
+                continue
+            
+            if field_number == 1011:
+                # Parse the status section, which looks like:
+                #1011-Router ID is 195.69.146.34
+                # Current server time is 10-01-2012 10:24:37
+                # Last reboot on 03-01-2012 12:46:40
+                # Last reconfiguration on 03-01-2012 12:46:40
+                data['router_id'] = self._parse_router_status_line(line)
+                line = line_iterator.next() # skip current server time
+                data['last_reboot'] = self._parse_router_status_line(line_iterator.next(), parse_date=True)
+                data['last_reconfiguration'] = self._parse_router_status_line(line_iterator.next(), parse_date=True)
+                                            
+        return data
+        
+    def _parse_router_status_line(self, line, parse_date=False):
+        """Parse a line like:
+            Current server time is 10-01-2012 10:24:37
+        optionally (if parse_date=True), parse it into a datetime"""
+        data = line.strip().split(' ', 3)[-1]
+        if parse_date:
+            return datetime.strptime(data, '%d-%m-%Y %H:%M:%S')
+        else:
+            return data
+        
 
     def get_peer_prefixes_announced(self, peer_name):
         """Get prefixes announced by a specific peer, without applying
@@ -404,7 +446,7 @@ class PyBird(object):
         data = ''
         prev_data = None
 
-        while (data.find("\n0000") == -1) and (data.find("\n8003") == -1):
+        while (data.find("\n0000") == -1) and (data.find("\n8003") == -1) and (data.find("\n0013") == -1):
             data += sock.recv(1024)
             if data == prev_data:
                 raise ValueError("Could not read additional data from BIRD")

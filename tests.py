@@ -97,7 +97,7 @@ class PyBirdTestCase(MockBirdTestBase):
         now = datetime.now()
         expected_date = datetime(now.year, now.month, now.day, 14, 20)
         if now.hour <= 14 and now.hour < 20:
-            expected_date = expected_date - timedelta(days=1)    
+            expected_date = expected_date - timedelta(days=1)
         self.assertEquals(ps2_status['last_change'], expected_date)
         
         self.assertEquals(ps2_status['state'], "Established")
@@ -150,7 +150,15 @@ class PyBirdTestCase(MockBirdTestBase):
         without finding proper data."""
         self.assertRaises(ValueError, self.pybird.get_peer_status, "no output")
         
-       
+
+    def test_bird_status(self):
+        """Test that we can fetch the status & uptime info"""
+        status = self.pybird.get_bird_status()
+        self.assertEquals(status['last_reboot'], datetime(2012, 1, 3, 12, 46, 40))
+        self.assertEquals(status['last_reconfiguration'], datetime(2012, 1, 3, 13, 56, 40))
+        
+
+
 class MockBirdTestCase(MockBirdTestBase):
     """Run a basic test to see whether our mocked BIRD control socket
      actually works. Can save a lot of work in debugging."""
@@ -411,7 +419,16 @@ class MockBird(Thread):
  	BGP.local_pref: 100
  	BGP.community: (8954,620)
 0000 
-""",        'show protocols all "nooutput"\n': "",
+""",
+        'show status\n': """
+1000-BIRD 1.3.3
+1011-Router ID is 195.69.146.34
+ Current server time is 10-01-2012 10:24:37
+ Last reboot on 03-01-2012 12:46:40
+ Last reconfiguration on 03-01-2012 13:56:40
+0013 Daemon is up and running 
+""",
+        'show protocols all "nooutput"\n': "",
     }
     
     def __init__(self, socket_file):
