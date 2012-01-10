@@ -29,7 +29,7 @@ import itertools
 from datetime import datetime, timedelta, date
 
 class PyBird(object):
-    ignored_field_numbers = [0001, 2002, 0000, 1008, 0013]
+    ignored_field_numbers = [0001, 2002, 0000, 1008, 0013, 9001]
     
     def __init__(self, socket_file):
         """Basic pybird setup.
@@ -446,7 +446,7 @@ class PyBird(object):
         data = ''
         prev_data = None
 
-        while (data.find("\n0000") == -1) and (data.find("\n8003") == -1) and (data.find("\n0013") == -1):
+        while (data.find("\n0000") == -1) and (data.find("\n8003") == -1) and (data.find("\n0013") == -1) and (data.find("\n9001") == -1):
             data += sock.recv(1024)
             if data == prev_data:
                 raise ValueError("Could not read additional data from BIRD")

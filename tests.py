@@ -138,6 +138,12 @@ class PyBirdTestCase(MockBirdTestBase):
         self.assertEquals(rejected_prefixes[0]['as_path'], '8954 20144')
 
 
+    def test_specific_peer_prefixes_accepted_nonexistant_peer(self):
+        """Test the handling of asking for accepted prefixes for a non-existing peer"""
+        accepted_prefixes = self.pybird.get_peer_prefixes_accepted("PS99")
+        self.assertEquals(len(accepted_prefixes), 0)
+
+
     def test_cleans_peer_name(self):
         """Test that improper characters are removed from the peer_name field
         before it is sent to BIRD."""
@@ -402,6 +408,10 @@ class MockBird(Thread):
  	BGP.local_pref: 100
  	BGP.community: (8954,620)
 0000
+""",
+        'show route all protocol ps99\n': """
+0001 BIRD 1.3.3 ready.
+9001 PS99 is not a protocol
 """,
         'show route table t_ps1 all protocol ps1\n': """
 0001 BIRD 1.3.3 ready.
