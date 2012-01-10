@@ -154,6 +154,7 @@ class PyBirdTestCase(MockBirdTestBase):
     def test_bird_status(self):
         """Test that we can fetch the status & uptime info"""
         status = self.pybird.get_bird_status()
+        self.assertEquals(status['router_id'], '195.69.146.34')
         self.assertEquals(status['last_reboot'], datetime(2012, 1, 3, 12, 46, 40))
         self.assertEquals(status['last_reconfiguration'], datetime(2012, 1, 3, 13, 56, 40))
         
