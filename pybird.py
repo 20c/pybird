@@ -362,7 +362,7 @@ class PyBird(object):
             parsed_value = datetime.strptime(value, "%H:%M")
             result_date = datetime(now.year, now.month, now.day, parsed_value.hour, parsed_value.minute)
             
-            if now.hour <= parsed_value.hour and now.minute < parsed_value.minute:
+            if now.hour < parsed_value.hour or (now.hour == parsed_value.hour and now.minute < parsed_value.minute):
                 result_date = result_date - timedelta(days=1)
             
             return result_date
