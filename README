@@ -8,7 +8,8 @@ PyBird is a Python interface to the BIRD Internet Routing Daemon's UNIX control
 socket, handling the socket connections and parsing the output.
 
 In it's current state, you can use it to query the status of specific or all
-BGP peers.
+BGP peers, to query the routes received, accepted and rejected from a peer,
+or the general status of BIRD (router ID, last config change)
 
 
 Usage example
@@ -24,11 +25,21 @@ Usage example
     >>> peer_state['last_change']
     datetime.datetime(2011, 6, 19, 19, 57, 0, 0)
 
+	>>> rejected = pybird.get_peer_prefixes_rejected('KPN')
+	>>> rejected[0]['as_path']
+	'23456 65592'
+	
+	>>> status = pybird.get_status()
+	>>> status['last_reconfiguration_time']
+	datetime.datetime(2012, 1, 3, 12, 46, 40)
+	>>> status['router_id']
+	"192.168.0.1"
+
 You can also call ``get_peer_status()`` without a peer name, to get an array
 with all the BGP peers.
 
-Full field list
-===============
+Full field list for peers
+=========================
 
 All fields that are decoded, if present:
 
@@ -44,6 +55,28 @@ All fields that are decoded, if present:
 And all combinations of:
 ``[import,export]_[updates,withdraws]_[received,rejected,filtered,ignored,accepted]``
 which BIRD supports.
+
+
+Full field list for routes
+==========================
+
+All fields that are decoded, if present:
+
+- ``origin``: BGP origin, e.g. "IGP"
+- ``as_path``: AS path as string
+- ``next_hop``: BGP next hop
+- ``local_pref``: Local pref, e.g. '100'
+- ``community``: Communities in BIRD string format, e.g. '(8954,620)'
+
+And any other BGP attribute fields BIRD has found.
+
+
+Full field list for BIRD status
+===============================
+
+- ``router_id``: BGP Router ID as string
+- ``last_reboot``: Last BIRD restart time as datetime
+- ``last_reconfiguration``: Last BIRD config change as datetime
 
 
 Test suite
