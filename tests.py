@@ -96,7 +96,7 @@ class PyBirdTestCase(MockBirdTestBase):
         # The test data says 14:20, so that could be today or yesterday
         now = datetime.now()
         expected_date = datetime(now.year, now.month, now.day, 14, 20)
-        if now.hour <= 14 and now.hour < 20:
+        if now.hour < 14 or now.hour == 14 and now.minute < 20:
             expected_date = expected_date - timedelta(days=1)
         self.assertEquals(ps2_status['last_change'], expected_date)
         
@@ -111,7 +111,7 @@ class PyBirdTestCase(MockBirdTestBase):
         ps1_status = self.pybird.get_peer_status("PS1")
         self.assertFalse(ps1_status['up'])
 
-        self.assertEquals(ps1_status['last_change'], datetime(2011, 6, 14))
+        self.assertEquals(ps1_status['last_change'], datetime(2012, 6, 13))
 
         self.assertEquals(ps1_status['state'], "Passive")
 
@@ -129,6 +129,7 @@ class PyBirdTestCase(MockBirdTestBase):
 
         self.assertEquals(accepted_prefixes[0]['origin'], 'IGP')
         self.assertEquals(accepted_prefixes[0]['as_path'], '8954 8283')
+        self.assertEquals(accepted_prefixes[0]['community'], '8954:220 8954:620')
         
 
     def test_specific_peer_prefixes_rejected(self):
@@ -406,7 +407,7 @@ class MockBird(Thread):
  	BGP.as_path: 8954 8283
  	BGP.next_hop: 2001:7f8:1::a500:8954:1 fe80::21f:caff:fe16:e02
  	BGP.local_pref: 100
- 	BGP.community: (8954,620)
+ 	BGP.community: (8954,220) (8954,620)
 0000
 """,
         'show route all protocol ps99\n': """
@@ -421,7 +422,7 @@ class MockBird(Thread):
  	BGP.as_path: 8954 8283
  	BGP.next_hop: 2001:7f8:1::a500:8954:1 fe80::21f:caff:fe16:e02
  	BGP.local_pref: 100
- 	BGP.community: (8954,620)
+ 	BGP.community: (8954,220) (8954,620)
 1007-2001:500:3::/48    via 2001:7f8:1::a500:8954:1 on eth1 [PS2 13:14] * (100) [AS20144i]
 1008-	Type: BGP unicast univ
 1012-	BGP.origin: IGP

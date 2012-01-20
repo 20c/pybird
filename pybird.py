@@ -189,9 +189,13 @@ class PyBird(object):
      	for line in lines:
      	    line = line.strip()
      	    # remove 'BGP.'
-     	    line = line[4:]
-     	    
+     	    line = line[4:]     	    
      	    (key, value) = line.split(": ")
+     	    
+     	    if key == 'community':
+     	        # convert (8954,220) (8954,620) to 8954:220 8954:620
+     	        value = value.replace(",", ":").replace("(", "").replace(")", "")
+     	    
      	    attributes[key] = value
      	    
      	return attributes

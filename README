@@ -66,7 +66,7 @@ All fields that are decoded, if present:
 - ``as_path``: AS path as string
 - ``next_hop``: BGP next hop
 - ``local_pref``: Local pref, e.g. '100'
-- ``community``: Communities in BIRD string format, e.g. '(8954,620)'
+- ``community``: Communities in string format, e.g. '8954:220 8954:620'
 
 And any other BGP attribute fields BIRD has found.
 
