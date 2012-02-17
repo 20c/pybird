@@ -190,7 +190,13 @@ class PyBird(object):
      	    line = line.strip()
      	    # remove 'BGP.'
      	    line = line[4:]     	    
-     	    (key, value) = line.split(": ")
+            parts = line.split(": ")
+            if len(parts) == 2:
+                (key, value) = parts
+            else:
+                # handle [BGP.atomic_aggr:]
+                key = parts[0].strip(":")
+                value = True
      	    
      	    if key == 'community':
      	        # convert (8954,220) (8954,620) to 8954:220 8954:620
