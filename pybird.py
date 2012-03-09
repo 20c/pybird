@@ -103,6 +103,19 @@ class PyBird(object):
         return self._parse_route_data(data)
 
 
+    def get_peer_prefixes_exported(self, peer_name):
+        """Get prefixes exported TO a specific peer"""
+        if self.dummy:
+            return [
+                {'prefix': '2001:db8:/32', 'as_path': '65520', 'community': '65520:79 65521:421'},
+                {'prefix': '2002::/16', 'as_path': '65520', 'community': '65520:1234'},
+            ]
+        clean_peer_name = self._clean_input(peer_name)
+        query = "show route all table T_%s export %s" % (clean_peer_name, clean_peer_name)
+        data = self._send_query(query)
+        return self._parse_route_data(data)
+
+
     def get_peer_prefixes_accepted(self, peer_name):
         """Get prefixes announced by a specific peer, which were also
         accepted by the filters"""
