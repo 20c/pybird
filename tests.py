@@ -111,7 +111,7 @@ class PyBirdTestCase(MockBirdTestBase):
         ps1_status = self.pybird.get_peer_status("PS1")
         self.assertFalse(ps1_status['up'])
 
-        self.assertEquals(ps1_status['last_change'], datetime(2012, 6, 13))
+        self.assertEquals(ps1_status['last_change'], datetime(now.year, 6, 13))
 
         self.assertEquals(ps1_status['state'], "Passive")
 

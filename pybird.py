@@ -340,6 +340,8 @@ class PyBird(object):
         
         try:
             state = elements[5]
+            if ':' in state:  # newer versions include a timestamp before the state
+                state = elements[6]
             up = (state.lower() == "established")
         except IndexError:
             state = None
@@ -447,8 +449,13 @@ class PyBird(object):
     def _calculate_datetime(self, value):
         """Turn the BIRD date format into a python datetime."""
         now = datetime.now()
-        
-        # Case 1: HH:mm timestamp
+        # Case 1: YYYY-MM-DD
+        try:
+            return datetime(int(value[:4]), int(value[5:7]), int(value[8:10]))
+        except ValueError:
+            pass
+
+        # Case 2: HH:mm timestamp
         try:
             parsed_value = datetime.strptime(value, "%H:%M")
             result_date = datetime(now.year, now.month, now.day, parsed_value.hour, parsed_value.minute)
@@ -462,7 +469,7 @@ class PyBird(object):
             # It's a different format, keep on processing
             pass
         
-        # Case 2: "Jun13" timestamp
+        # Case 3: "Jun13" timestamp
         try:
             # Run this for a (fake) leap year, or 29 feb will get us in trouble
             parsed_value = datetime.strptime("1996 "+value, "%Y %b%d")
@@ -476,7 +483,7 @@ class PyBird(object):
         except ValueError:
             pass
             
-        # Must be a plain year
+        # Case 4: plain year
         try:
             year = int(value)
             return datetime(year, 1, 1)
