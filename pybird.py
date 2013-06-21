@@ -352,15 +352,20 @@ class PyBird(object):
         elements = line.split()
         
         try:
-            state = elements[5]
-            if ':' in state:  # newer versions include a timestamp before the state
+            if ':' in elements[5]:  # newer versions include a timestamp before the state
                 state = elements[6]
+            else:
+                state = elements[5]
             up = (state.lower() == "established")
         except IndexError:
             state = None
             up = None
-        
-        last_change = self._calculate_datetime(elements[4])
+
+        if ':' in elements[5]:
+            raw_datetime = elements[4] + " " + elements[5]
+        else:
+            raw_datetime = elements[4]
+        last_change = self._calculate_datetime(raw_datetime)
         
         return {
             'name': elements[0],
@@ -462,13 +467,19 @@ class PyBird(object):
     def _calculate_datetime(self, value):
         """Turn the BIRD date format into a python datetime."""
         now = datetime.now()
+        # Case 1: YYYY-MM-DD HH:MM:SS
+        try:
+            return datetime(int(value[:4]), int(value[5:7]), int(value[8:10]), int(value[11:13]), int(value[14:16]), int(value[17:19]))
+        except ValueError:
+            pass
+
         # Case 1: YYYY-MM-DD
         try:
             return datetime(int(value[:4]), int(value[5:7]), int(value[8:10]))
         except ValueError:
             pass
 
-        # Case 2: HH:mm timestamp
+        # Case 3: HH:mm timestamp
         try:
             parsed_value = datetime.strptime(value, "%H:%M")
             result_date = datetime(now.year, now.month, now.day, parsed_value.hour, parsed_value.minute)
@@ -482,7 +493,7 @@ class PyBird(object):
             # It's a different format, keep on processing
             pass
         
-        # Case 3: "Jun13" timestamp
+        # Case 4: "Jun13" timestamp
         try:
             # Run this for a (fake) leap year, or 29 feb will get us in trouble
             parsed_value = datetime.strptime("1996 "+value, "%Y %b%d")
@@ -496,7 +507,7 @@ class PyBird(object):
         except ValueError:
             pass
             
-        # Case 4: plain year
+        # Case 5: plain year
         try:
             year = int(value)
             return datetime(year, 1, 1)
