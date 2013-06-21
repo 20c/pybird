@@ -139,6 +139,17 @@ class PyBird(object):
         rejected_routes = [item for item in announced if item['prefix'] in rejected_prefixes]
         return rejected_routes
 
+    def get_prefix_info(self, prefix, peer_name=None):
+        """Get route-info for specified prefix"""
+        if self.dummy:
+            return [
+                {'prefix': '2001:db8:/32', 'as_path': '65520', 'community': '65520:79 65521:421'},
+            ]
+        query = "show route for %s all" % prefix 
+	if ( peer_name is not None): query+=" protocol %s" % peer_name
+        data = self._send_query(query)
+        return self._parse_route_data(data)
+
 
     def _parse_route_data(self, data):
         """Parse a blob like:
@@ -192,7 +203,9 @@ class PyBird(object):
                 routes.append(route_detail)
                 # Do not use this summary again on the next run
                 route_summary = None
-                
+            if field_number == 8001:
+	        # network not in table
+		return []
         return routes
         
         
@@ -502,7 +515,7 @@ class PyBird(object):
         data = ''
         prev_data = None
 
-        while (data.find("\n0000") == -1) and (data.find("\n8003") == -1) and (data.find("\n0013") == -1) and (data.find("\n9001") == -1):
+        while (data.find("\n0000") == -1) and (data.find("\n8003") == -1) and (data.find("\n0013") == -1) and (data.find("\n9001") == -1) and (data.find("\n8001") == -1):
             data += sock.recv(1024)
             if data == prev_data:
                 raise ValueError("Could not read additional data from BIRD")
