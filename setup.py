@@ -3,7 +3,7 @@
 from distutils.core import setup
 
 setup(name='pybird',
-      version='1.0.8',
+      version='1.0.9',
       description='BIRD interface handler for Python',
       author='Erik Romijn',
       author_email='eromijn@solidlinks.nl',
