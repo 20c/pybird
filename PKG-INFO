@@ -1,6 +1,6 @@
 Metadata-Version: 1.1
 Name: pybird
-Version: 1.0.8
+Version: 1.0.9
 Author: Erik Romijn
 Author-email: eromijn at solidlinks nl
 Summary: BIRD interface handler for Python
@@ -42,7 +42,8 @@ Description: .. -*- restructuredtext -*-
 	    "192.168.0.1"
 	
 	You can also call ``get_peer_status()`` without a peer name, to get an array
-	with all the BGP peers.
+	with all the BGP peers. There's also ``get_prefix_info()`` to get the route info
+    for a specified prefix, optionally limited to a specific peer.
 	
 	Full field list for peers
 	=========================
