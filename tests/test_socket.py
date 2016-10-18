@@ -58,9 +58,9 @@ class MockBirdTestBase(unittest.TestCase):
 
         data = sock.recv(1024000)
         sock.close()
-        return str(data)        
-               
-               
+        return str(data)
+
+
 class PyBirdTestCase(MockBirdTestBase):
     """Test the PyBird library"""
     

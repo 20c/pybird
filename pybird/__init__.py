@@ -1,3 +1,6 @@
+from builtins import str
+from builtins import next
+from builtins import object
 
 import re
 import socket
@@ -5,7 +8,7 @@ from datetime import datetime, timedelta
 
 
 class PyBird(object):
-    ignored_field_numbers = [0001, 2002, 0000, 1008, 0013, 9001]
+    ignored_field_numbers = [0, 1, 13, 1008, 2002, 9001]
 
     def __init__(self, socket_file, dummy=False):
         """Basic pybird setup.
@@ -48,11 +51,11 @@ class PyBird(object):
                 # Last reboot on 03-01-2012 12:46:40
                 # Last reconfiguration on 03-01-2012 12:46:40
                 data['router_id'] = self._parse_router_status_line(line)
-                line = line_iterator.next()  # skip current server time
+                line = next(line_iterator)  # skip current server time
                 data['last_reboot'] = self._parse_router_status_line(
-                    line_iterator.next(), parse_date=True)
+                    next(line_iterator), parse_date=True)
                 data['last_reconfiguration'] = self._parse_router_status_line(
-                    line_iterator.next(), parse_date=True)
+                    next(line_iterator), parse_date=True)
 
         return data
 
@@ -313,7 +316,7 @@ class PyBird(object):
                 peer_detail_raw = []
                 while line.strip() != "":
                     peer_detail_raw.append(line)
-                    line = lineiterator.next()
+                    line = next(lineiterator)
 
                 peer_detail = self._parse_peer_detail(peer_detail_raw)
 
