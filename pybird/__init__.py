@@ -24,10 +24,7 @@
 
 import re
 import socket
-import select
-import itertools
-import random
-from datetime import datetime, timedelta, date
+from datetime import datetime, timedelta
 
 
 class PyBird(object):
@@ -143,7 +140,7 @@ class PyBird(object):
         accepted_prefixes = [i['prefix'] for i in accepted]
 
         rejected_prefixes = [
-            item for item in announced_prefixes if not item in accepted_prefixes]
+            item for item in announced_prefixes if item not in accepted_prefixes]
         rejected_routes = [item for item in announced if item[
             'prefix'] in rejected_prefixes]
         return rejected_routes
