@@ -11,7 +11,7 @@ BIRD interface handler for Python
 
 PyBird is a Python interface to the BIRD Internet Routing Daemon's UNIX control
 socket, handling the socket connections and parsing the output. It was
-originally written by Erik Romijn (@erikr), forked from
+originally written by [Erik Romijn](https://github.com/erikr), forked from
 <https://bitbucket.org/erikr/pybird>, and relicensed with permission.
 
 
