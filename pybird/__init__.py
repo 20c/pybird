@@ -350,7 +350,7 @@ class PyBird(object):
         
         """
         elements = line.split()
-        
+
         try:
             if ':' in elements[5]:  # newer versions include a timestamp before the state
                 state = elements[6]
@@ -361,12 +361,9 @@ class PyBird(object):
             state = None
             up = None
 
-        if ':' in elements[5]:
-            raw_datetime = elements[4] + " " + elements[5]
-        else:
-            raw_datetime = elements[4]
+        raw_datetime = elements[4]
         last_change = self._calculate_datetime(raw_datetime)
-        
+
         return {
             'name': elements[0],
             'protocol': elements[1],
