@@ -1,12 +1,31 @@
-#!/usr/bin/env python
 
-from distutils.core import setup
+from setuptools import find_packages, setup
 
-setup(name='pybird',
-      version='1.0.10',
-      description='BIRD interface handler for Python',
-      author='Erik Romijn',
-      author_email='eromijn@solidlinks.nl',
-      license="BSD",
-      py_modules=["pybird"],
-     )
+
+version = open('facsimile/VERSION').read().strip()
+requirements = open('facsimile/requirements.txt').read().split("\n")
+test_requirements = open('facsimile/requirements-test.txt').read().split("\n")
+
+
+setup(
+    name='pybird',
+    version=version,
+    author='20C',
+    author_email='code@20c.com',
+    description='BIRD interface handler for Python',
+    long_description='',
+    license='LICENSE.txt',
+    classifiers=[
+        'Development Status :: 4 - Beta',
+        'License :: OSI Approved :: Apache Software License',
+    ],
+    packages = find_packages(),
+    include_package_data=True,
+    url='https://github.com/20c/pybird',
+    download_url='https://github.com/20c/pybird/%s' % version,
+
+    install_requires=requirements,
+    test_requires=test_requirements,
+
+    zip_safe=True
+)
