@@ -5,15 +5,19 @@ from builtins import object
 import re
 import socket
 from datetime import datetime, timedelta
+from subprocess import Popen, PIPE
 
 
 class PyBird(object):
     ignored_field_numbers = [0, 1, 13, 1008, 2002, 9001]
 
-    def __init__(self, socket_file, dummy=False):
+    def __init__(self, socket_file, hostname=None, user=None, password=None, dummy=False):
         """Basic pybird setup.
         Required argument: socket_file: full path to the BIRD control socket."""
         self.socket_file = socket_file
+        self.hostname = hostname
+        self.user = user
+        self.password = password
         self.clean_input_re = re.compile('\W+')
         self.field_number_re = re.compile('^(\d+)[ -]')
         self.routes_field_re = re.compile('(\d+) imported, (\d+) exported')
@@ -133,7 +137,7 @@ class PyBird(object):
                     'community': '65520:79 65521:421'},
             ]
         query = "show route for %s all" % prefix
-        if (peer_name is not None):
+        if peer_name is not None:
             query += " protocol %s" % peer_name
         data = self._send_query(query)
         return self._parse_route_data(data)
@@ -142,8 +146,8 @@ class PyBird(object):
         """Parse a blob like:
             0001 BIRD 1.3.3 ready.
             1007-2a02:898::/32      via 2001:7f8:1::a500:8954:1 on eth1 [PS2 12:46] * (100) [AS8283i]
-            1008-	Type: BGP unicast univ
-            1012-	BGP.origin: IGP
+            1008-   Type: BGP unicast univ
+            1012-   BGP.origin: IGP
                 BGP.as_path: 8954 8283
                 BGP.next_hop: 2001:7f8:1::a500:8954:1 fe80::21f:caff:fe16:e02
                 BGP.local_pref: 100
@@ -206,7 +210,7 @@ class PyBird(object):
 
     def _parse_route_detail(self, lines):
         """Parse a blob like:
-            1012-	BGP.origin: IGP
+            1012-   BGP.origin: IGP
                 BGP.as_path: 8954 8283
                 BGP.next_hop: 2001:7f8:1::a500:8954:1 fe80::21f:caff:fe16:e02
                 BGP.local_pref: 100
@@ -505,6 +509,22 @@ class PyBird(object):
             raise ValueError("Can not parse datetime: [%s]" % value)
 
     def _send_query(self, query):
+        if self.hostname:
+            return self._remote_query(query)
+        return self._socket_query(query)
+
+    def _remote_query(self, query):
+        """
+        mimic a direct socket connect over ssh
+        """
+        cmd = "birdc -v -s {} '{}'".format(self.socket_file, query)
+        to = '{}@{}'.format(self.user, self.hostname)
+
+        res, stderr = Popen(['ssh', to, cmd], stdout=PIPE).communicate()
+        res += "0000\n"
+        return res
+
+    def _socket_query(self, query):
         """Open a socket to the BIRD control socket, send the query and get
         the response.
         """

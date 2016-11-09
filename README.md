@@ -97,7 +97,9 @@ interaction.
 ### License
 
 Copyright 2016 20C, LLC
+
 Copyright 2011, Erik Romijn <eromijn@solidlinks.nl>
+
 All rights reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
