@@ -1,0 +1,8 @@
+0001 BIRD 1.3.0 ready.
+2002-name     proto    table    state  since       info
+1002-device1  Device   master   up     14:07
+ P_PS2    Pipe     master   up     14:07       => T_PS2
+ PS2      BGP      T_PS2    up     14:20       Established
+ P_PS1    Pipe     master   up     Jun13       => T_PS1
+ PS1      BGP      T_PS1    start  Jun13       Passive
+0000

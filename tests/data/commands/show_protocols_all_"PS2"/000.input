@@ -1,0 +1,25 @@
+0001 BIRD 1.3.0 ready.
+2002-name     proto    table    state  since       info
+1002-PS2      BGP      T_PS2    up     14:20       Established   
+1006-  Description:    Peering AS8954 - InTouch
+   Preference:     100
+   Input filter:   ACCEPT
+   Output filter:  ACCEPT
+   Routes:         24 imported, 23 exported, 0 preferred
+   Route change stats:     received   rejected   filtered    ignored   accepted
+     Import updates:             12          0          0          0         12
+     Import withdraws:            3          0        ---          0          3
+     Export updates:             12         12          0        ---          0
+     Export withdraws:            3        ---        ---        ---          0
+   BGP state:          Established
+     Session:          external route-server AS4
+     Neighbor AS:      8954
+     Neighbor ID:      85.184.4.5
+     Neighbor address: 2001:7f8:1::a500:8954:1
+     Source address:   2001:7f8:1::a519:7754:1
+     Neighbor caps:    refresh AS4
+     Route limit:      9/1000
+     Hold timer:       121/180
+     Keepalive timer:  20/60
+
+0000 
