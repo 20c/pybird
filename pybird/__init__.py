@@ -2,6 +2,7 @@ from builtins import str
 from builtins import next
 from builtins import object
 
+import logging
 import re
 import socket
 from datetime import datetime, timedelta
@@ -22,6 +23,7 @@ class PyBird(object):
         self.field_number_re = re.compile('^(\d+)[ -]')
         self.routes_field_re = re.compile('(\d+) imported, (\d+) exported')
         self.dummy = dummy
+        self.log = logging.getLogger(__name__)
 
     def get_bird_status(self):
         """Get the status of the BIRD instance. Returns a dict with keys:
@@ -37,6 +39,8 @@ class PyBird(object):
             ]
         query = "show status"
         data = self._send_query(query)
+        if not self.socket_file:
+            return data
 
         line_iterator = iter(data.splitlines())
         data = {}
@@ -271,6 +275,9 @@ class PyBird(object):
             query = 'show protocols all'
 
         data = self._send_query(query)
+        if not self.socket_file:
+            return data
+
         peers = self._parse_peer_data(data=data, data_contains_detail=True)
 
         if not peer_name:
@@ -538,6 +545,7 @@ class PyBird(object):
         while (data.find("\n0000") == -1) and (data.find("\n8003") == -1) and (data.find("\n0013") == -1) and (data.find("\n9001") == -1) and (data.find("\n8001") == -1):
             data += sock.recv(1024)
             if data == prev_data:
+                self.log.debug(data)
                 raise ValueError("Could not read additional data from BIRD")
             prev_data = data
 
