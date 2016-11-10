@@ -81,89 +81,84 @@ class PyBirdTestCase(MockBirdTestBase):
         in test_specific_peer_status()."""
         statuses = self.pybird.get_peer_status()
 
-        self.assertEquals(statuses[0]['name'], "PS1")
-        self.assertEquals(statuses[0]['state'], "Passive")
-        self.assertEquals(statuses[1]['name'], "PS2")
-        self.assertEquals(statuses[1]['state'], "Established")
+        assert statuses[0]['name'] == "PS1"
+        assert statuses[0]['state'] == "Passive"
+        assert statuses[1]['name'] == "PS2"
+        assert statuses[1]['state'] == "Established"
 
     def test_nonexistant_peer_status(self):
         """Test that we get None if the peer did not exist."""
         status = self.pybird.get_peer_status("HAMSTER")
-        self.assertEquals(status, None)
+        assert status == None
 
     def test_specific_peer_status(self):
         """Test the retrieval of specific peer info, and check all the fields
         for correctness."""
         ps2_status = self.pybird.get_peer_status("PS2")
-        self.assertTrue(ps2_status['up'])
+        assert ps2_status['up']
 
         # The test data says 14:20, so that could be today or yesterday
         now = datetime.now()
         expected_date = datetime(now.year, now.month, now.day, 14, 20)
         if now.hour < 14 or now.hour == 14 and now.minute < 20:
             expected_date = expected_date - timedelta(days=1)
-        self.assertEquals(ps2_status['last_change'], expected_date)
-
-        self.assertEquals(ps2_status['state'], "Established")
-        self.assertEquals(ps2_status['routes_imported'], 24)
-        self.assertEquals(ps2_status['routes_exported'], 23)
-        self.assertEquals(ps2_status['import_updates_received'], 12)
-        self.assertEquals(ps2_status['import_withdraws_accepted'], 3)
-        self.assertEquals(ps2_status['export_updates_rejected'], 12)
-        self.assertEquals(ps2_status['router_id'], "85.184.4.5")
+        assert ps2_status['last_change'] == expected_date
+        assert ps2_status['state'] == "Established"
+        assert ps2_status['routes_imported'] == 24
+        assert ps2_status['routes_exported'] == 23
+        assert ps2_status['import_updates_received'] == 12
+        assert ps2_status['import_withdraws_accepted'] == 3
+        assert ps2_status['export_updates_rejected'] == 12
+        assert ps2_status['router_id'] == "85.184.4.5"
 
         ps1_status = self.pybird.get_peer_status("PS1")
         self.assertFalse(ps1_status['up'])
 
-        self.assertEquals(ps1_status['last_change'], datetime(now.year, 6, 13))
-
-        self.assertEquals(ps1_status['state'], "Passive")
+        assert ps1_status['last_change'] == datetime(now.year, 6, 13)
+        assert ps1_status['state'] == "Passive"
 
     def test_specific_peer_prefixes_announced(self):
         """Test the retrieval of prefixes announced by a peer."""
         announced_prefixes = self.pybird.get_peer_prefixes_announced("PS1")
-        self.assertEquals(len(announced_prefixes), 2)
+        assert len(announced_prefixes) == 2
 
     def test_specific_peer_prefixes_accepted(self):
         """Test the retrieval of prefixes announced by a peer."""
         accepted_prefixes = self.pybird.get_peer_prefixes_accepted("PS1")
-        self.assertEquals(len(accepted_prefixes), 1)
-
-        self.assertEquals(accepted_prefixes[0]['origin'], 'IGP')
-        self.assertEquals(accepted_prefixes[0]['as_path'], '8954 8283')
-        self.assertEquals(accepted_prefixes[0][
-                          'community'], '8954:220 8954:620')
+        assert len(accepted_prefixes) == 1
+        assert accepted_prefixes[0]['origin'] == 'IGP'
+        assert accepted_prefixes[0]['as_path'] == '8954 8283'
+        assert accepted_prefixes[0]['community'] == '8954:220 8954:620'
 
     def test_specific_peer_prefixes_rejected(self):
         """Test the retrieval of prefixes rejected from a peer."""
         rejected_prefixes = self.pybird.get_peer_prefixes_rejected("PS1")
-        self.assertEquals(len(rejected_prefixes), 1)
-        self.assertEquals(rejected_prefixes[0]['as_path'], '8954 20144')
+        assert len(rejected_prefixes) == 1
+        assert rejected_prefixes[0]['as_path'] == '8954 20144'
 
     def test_specific_peer_prefixes_accepted_nonexistant_peer(self):
         """Test the handling of asking for accepted prefixes for a non-existing peer"""
         accepted_prefixes = self.pybird.get_peer_prefixes_accepted("PS99")
-        self.assertEquals(len(accepted_prefixes), 0)
+        assert len(accepted_prefixes) == 0
 
     def test_cleans_peer_name(self):
         """Test that improper characters are removed from the peer_name field
         before it is sent to BIRD."""
         ps1_status = self.pybird.get_peer_status("PS1{\"'}")
-        self.assertFalse(ps1_status['up'])
+        assert not ps1_status['up']
 
     def test_handles_no_output(self):
         """Test that the code detects that it reached the end of the output
         without finding proper data."""
-        self.assertRaises(ValueError, self.pybird.get_peer_status, "no output")
+        with pytest.raises(ValueError):
+            self.pybird.get_peer_status("no output")
 
     def test_bird_status(self):
         """Test that we can fetch the status & uptime info"""
         status = self.pybird.get_bird_status()
-        self.assertEquals(status['router_id'], '195.69.146.34')
-        self.assertEquals(status['last_reboot'],
-                          datetime(2012, 1, 3, 12, 46, 40))
-        self.assertEquals(status['last_reconfiguration'],
-                          datetime(2012, 1, 3, 13, 56, 40))
+        assert status['router_id'] == '195.69.146.34'
+        assert status['last_reboot'] == datetime(2012, 1, 3, 12, 46, 40)
+        assert status['last_reconfiguration'] == datetime(2012, 1, 3, 13, 56, 40)
 
 
 class MockBirdTestCase(MockBirdTestBase):
