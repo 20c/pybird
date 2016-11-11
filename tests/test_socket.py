@@ -107,14 +107,21 @@ class PyBirdTestCase(MockBirdTestBase):
         self.pybird = PyBird(socket_file=self.socket_file)
         self.expected = Expected(None)
 
+    def run_method_test(self, name, *args):
+        func = getattr(self.pybird, name)
+        if not func:
+            raise ValueError("Method {} not found on pybird".format(name))
+
+        for expected in getattr(self.expected, name)(*args):
+            result = func(*args)
+            print(json.dumps(result, cls=JSONEncoder))
+            assert expected == result
+
     def test_all_peer_status(self):
         """Test that we can get a list of all peers and their status.
         Testing of individual fields here is limited, that's mostly done
         in test_specific_peer_status()."""
-        statuses = self.pybird.get_peer_status()
-        expected = self.expected.get_peer_status().next()
-
-        assert expected == statuses
+        self.run_method_test('get_peer_status')
 
     def test_nonexistant_peer_status(self):
         """Test that we get None if the peer did not exist."""

@@ -369,8 +369,17 @@ class PyBird(object):
         result = {}
 
         route_change_fields = [
-            "import updates", "import withdraws", "export updates", "export withdraws"]
-
+            "import updates",
+            "import withdraws",
+            "export updates",
+            "export withdraws"
+            ]
+        field_map = {
+            'description': 'description',
+            'neighbor id': 'router_id',
+            'neighbor address': 'address',
+            'neighbor AS': 'asn',
+            }
         lineiterator = iter(peer_detail_raw)
 
         for line in lineiterator:
@@ -397,8 +406,8 @@ class PyBird(object):
                 self._parse_route_stats(
                     result, key_name_base + '_accepted', accepted)
 
-            if field.lower() == "neighbor id":
-                result['router_id'] = value
+            if field.lower() in field_map.keys():
+                result[field_map[field.lower()]] = value
 
         return result
 
