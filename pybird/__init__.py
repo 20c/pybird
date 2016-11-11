@@ -500,7 +500,11 @@ class PyBird(object):
         data = ''
         prev_data = None
 
-        while (data.find("\n0000") == -1) and (data.find("\n8003") == -1) and (data.find("\n0013") == -1) and (data.find("\n9001") == -1) and (data.find("\n8001") == -1):
+        while ((data.find("\n0000") == -1) and
+               (data.find("\n8003") == -1) and
+               (data.find("\n0013") == -1) and
+               (data.find("\n9001") == -1) and
+               (data.find("\n8001") == -1)):
             data += sock.recv(1024)
             if data == prev_data:
                 self.log.debug(data)
@@ -510,7 +514,7 @@ class PyBird(object):
         sock.close()
         return str(data)
 
-    def _clean_input(self, input):
+    def _clean_input(self, inp):
         """Clean the input string of anything not plain alphanumeric chars,
         return the cleaned string."""
-        return self.clean_input_re.sub('', input).strip()
+        return self.clean_input_re.sub('', inp).strip()
