@@ -73,7 +73,11 @@ class PyBird(object):
         optionally (if parse_date=True), parse it into a datetime"""
         data = line.strip().split(' ', 3)[-1]
         if parse_date:
-            return datetime.strptime(data, '%d-%m-%Y %H:%M:%S')
+            try:
+                return datetime.strptime(data, '%Y-%m-%d %H:%M:%S')
+            # old versions of bird used DD-MM-YYYY
+            except ValueError:
+                return datetime.strptime(data, '%d-%m-%Y %H:%M:%S')
         else:
             return data
 
