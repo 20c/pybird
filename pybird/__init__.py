@@ -12,7 +12,7 @@ from subprocess import Popen, PIPE
 class PyBird(object):
     ignored_field_numbers = [0, 1, 13, 1008, 2002, 9001]
 
-    def __init__(self, socket_file, hostname=None, user=None, password=None, dummy=False):
+    def __init__(self, socket_file, hostname=None, user=None, password=None):
         """Basic pybird setup.
         Required argument: socket_file: full path to the BIRD control socket."""
         self.socket_file = socket_file
@@ -22,7 +22,6 @@ class PyBird(object):
         self.clean_input_re = re.compile('\W+')
         self.field_number_re = re.compile('^(\d+)[ -]')
         self.routes_field_re = re.compile('(\d+) imported, (\d+) exported')
-        self.dummy = dummy
         self.log = logging.getLogger(__name__)
 
     def get_bird_status(self):
@@ -30,13 +29,6 @@ class PyBird(object):
         - router_id (string)
         - last_reboot (datetime)
         - last_reconfiguration (datetime)"""
-        if self.dummy:
-            return [
-                {'prefix': '2001:db8:/32', 'as_path': '65520',
-                    'communities': '65520:79 65521:421'},
-                {'prefix': '2002::/16', 'as_path': '65520',
-                    'communities': '65520:1234'},
-            ]
         query = "show status"
         data = self._send_query(query)
         if not self.socket_file:
@@ -84,13 +76,6 @@ class PyBird(object):
     def get_peer_prefixes_announced(self, peer_name):
         """Get prefixes announced by a specific peer, without applying
         filters - i.e. this includes routes which were not accepted"""
-        if self.dummy:
-            return [
-                {'prefix': '2001:db8:/32', 'as_path': '65520',
-                    'community': '65520:79 65521:421'},
-                {'prefix': '2002::/16', 'as_path': '65520',
-                    'community': '65520:1234'},
-            ]
         clean_peer_name = self._clean_input(peer_name)
         query = "show route table T_%s all protocol %s" % (
             clean_peer_name, clean_peer_name)
@@ -99,13 +84,6 @@ class PyBird(object):
 
     def get_peer_prefixes_exported(self, peer_name):
         """Get prefixes exported TO a specific peer"""
-        if self.dummy:
-            return [
-                {'prefix': '2001:db8:/32', 'as_path': '65520',
-                    'community': '65520:79 65521:421'},
-                {'prefix': '2002::/16', 'as_path': '65520',
-                    'community': '65520:1234'},
-            ]
         clean_peer_name = self._clean_input(peer_name)
         query = "show route all table T_%s export %s" % (
             clean_peer_name, clean_peer_name)
@@ -115,11 +93,6 @@ class PyBird(object):
     def get_peer_prefixes_accepted(self, peer_name):
         """Get prefixes announced by a specific peer, which were also
         accepted by the filters"""
-        if self.dummy:
-            return [
-                {'prefix': '2001:db8:/32', 'as_path': '65520',
-                    'community': '65520:79 65521:421'},
-            ]
         query = "show route all protocol %s" % self._clean_input(peer_name)
         data = self._send_query(query)
         return self._parse_route_data(data)
@@ -139,11 +112,6 @@ class PyBird(object):
 
     def get_prefix_info(self, prefix, peer_name=None):
         """Get route-info for specified prefix"""
-        if self.dummy:
-            return [
-                {'prefix': '2001:db8:/32', 'as_path': '65520',
-                    'community': '65520:79 65521:421'},
-            ]
         query = "show route for %s all" % prefix
         if peer_name is not None:
             query += " protocol %s" % peer_name
@@ -259,23 +227,9 @@ class PyBird(object):
         If a peer_name argument is given, returns a single peer, represented
         as a dict. If the peer is not found, returns None.
         """
-        dummy_data = [
-            {'up': True, 'state': 'dummy', 'last_change': datetime.now() - timedelta(days=2),
-             'routes_imported': 1, 'routes_exported': 10, 'router_id': "192.168.1.1"},
-            {'up': True, 'state': 'dummy', 'last_change': datetime.now() - timedelta(days=20),
-             'routes_imported': 1, 'routes_exported': 10, 'router_id': "192.168.12.42"},
-            {'up': False, 'state': 'dummy', 'last_change': datetime.now() -
-             timedelta(hours=2), },
-        ]
-
         if peer_name:
-            if self.dummy:
-                peering_id = int(peer_name[2:])
-                return dummy_data[peering_id % 3]
             query = 'show protocols all "%s"' % self._clean_input(peer_name)
         else:
-            if self.dummy:
-                return dummy_data
             query = 'show protocols all'
 
         data = self._send_query(query)
