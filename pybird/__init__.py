@@ -88,6 +88,8 @@ class PyBird(object):
         query = "show route all table T_%s export %s" % (
             clean_peer_name, clean_peer_name)
         data = self._send_query(query)
+        if not self.socket_file:
+            return data
         return self._parse_route_data(data)
 
     def get_peer_prefixes_accepted(self, peer_name):
@@ -116,6 +118,8 @@ class PyBird(object):
         if peer_name is not None:
             query += " protocol %s" % peer_name
         data = self._send_query(query)
+        if not self.socket_file:
+            return data
         return self._parse_route_data(data)
 
     def _parse_route_data(self, data):

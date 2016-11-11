@@ -1,0 +1,10 @@
+0001 BIRD 1.4.5 ready.
+1007-8.8.8.0/24         via 206.41.110.37 on bond0.895 [chix_as33713_rs0 2016-09-16 from 206.41.110.66] (100) [AS15169i]
+1008-   Type: BGP unicast univ
+1012-   BGP.origin: IGP
+        BGP.as_path: 15169
+        BGP.next_hop: 206.41.110.37
+        BGP.med: 0
+        BGP.local_pref: 200
+        BGP.community: (63311,21201)
+0000

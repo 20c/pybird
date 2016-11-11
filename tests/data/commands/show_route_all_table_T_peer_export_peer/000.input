@@ -1,0 +1,23 @@
+0001 BIRD 1.4.5 ready.
+1007-204.130.133.0/24   blackhole [static1 2016-07-24] * (200)
+1008-   Type: static unicast univ
+1012-   BGP.origin: IGP
+        BGP.as_path: 63311 63311
+        BGP.next_hop: 10.217.130.42
+        BGP.local_pref: 100
+        BGP.community: (43531,49021)
+1007-157.97.97.0/24     blackhole [static1 2016-09-10] * (200)
+1008-   Type: static unicast univ
+1012-   BGP.origin: IGP
+        BGP.as_path: 63311 63311
+        BGP.next_hop: 10.217.130.42
+        BGP.local_pref: 100
+        BGP.community: (43531,49021)
+1007-208.200.137.0/24   blackhole [static1 2016-07-24] * (200)
+1008-   Type: static unicast univ
+1012-   BGP.origin: IGP
+        BGP.as_path: 63311 63311
+        BGP.next_hop: 10.217.130.42
+        BGP.local_pref: 100
+        BGP.community: (43531,49021)
+0000

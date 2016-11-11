@@ -192,6 +192,18 @@ class PyBirdTestCase(MockBirdTestBase):
 
         assert not self.mock_bird.unused_tests()
 
+    def test_get_peer_prefixes_exported(self):
+        for expected in self.expected.get_peer_prefixes_exported('peer'):
+            status = self.pybird.get_peer_prefixes_exported('peer')
+            print(json.dumps(status, cls=JSONEncoder))
+            assert expected == status
+
+    def test_get_prefix_info(self):
+        for expected in self.expected.get_prefix_info('8.8.8.8', 'peer'):
+            status = self.pybird.get_prefix_info('8.8.8.8', 'peer')
+            print(json.dumps(status, cls=JSONEncoder))
+            assert expected == status
+
 
 class MockBirdTestCase(MockBirdTestBase):
     """Run a basic test to see whether our mocked BIRD control socket
