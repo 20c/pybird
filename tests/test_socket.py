@@ -17,6 +17,26 @@ this_dir = os.path.dirname(__file__)
 data_dir = os.path.join(this_dir, 'data')
 
 
+def json_hook(data):
+    date_keys = (
+        'last_change',
+        'last_reboot',
+        'last_reconfiguration',
+        )
+    for key in date_keys:
+        if key in data:
+            data[key] = datetime.strptime(data[key], "%Y-%m-%dT%H:%M:%S")
+    return data
+
+
+class JSONEncoder(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, datetime):
+            return o.isoformat()
+
+        return json.JSONEncoder.default(self, o)
+
+
 class MockBirdTestBase(unittest.TestCase):
     """Base class which sets up a MockBird - a tiny fake BIRD
     control running on a unix socket"""
@@ -55,9 +75,14 @@ def get_test_files(cmd):
 def get_expected(cmd):
     for each in get_test_files(cmd):
         fname, ext = os.path.splitext(each)
-        if ext == '.expected':
-            with open(each) as fobj:
-                yield json.load(each)
+        # load based on input files so they always match up
+        if ext == '.input':
+            path = fname + '.expected'
+            if os.path.exists(path):
+                with open(path) as fobj:
+                    yield json.load(fobj, object_hook=json_hook)
+            else:
+                yield ''
 
 
 def get_responses(cmd):
@@ -68,23 +93,28 @@ def get_responses(cmd):
                 yield fobj.read()
 
 
+class Expected(PyBird):
+    """ overrides bird instance to return generator of expected responses """
+    def _send_query(self, cmd):
+        return get_expected(cmd)
+
+
 class PyBirdTestCase(MockBirdTestBase):
     """Test the PyBird library"""
 
     def setUp(self):
         super(PyBirdTestCase, self).setUp()
         self.pybird = PyBird(socket_file=self.socket_file)
+        self.expected = Expected(None)
 
     def test_all_peer_status(self):
         """Test that we can get a list of all peers and their status.
         Testing of individual fields here is limited, that's mostly done
         in test_specific_peer_status()."""
         statuses = self.pybird.get_peer_status()
+        expected = self.expected.get_peer_status().next()
 
-        assert statuses[0]['name'] == "PS1"
-        assert statuses[0]['state'] == "Passive"
-        assert statuses[1]['name'] == "PS2"
-        assert statuses[1]['state'] == "Established"
+        assert expected == statuses
 
     def test_nonexistant_peer_status(self):
         """Test that we get None if the peer did not exist."""
@@ -155,10 +185,12 @@ class PyBirdTestCase(MockBirdTestBase):
 
     def test_bird_status(self):
         """Test that we can fetch the status & uptime info"""
-        status = self.pybird.get_bird_status()
-        assert status['router_id'] == '195.69.146.34'
-        assert status['last_reboot'] == datetime(2012, 1, 3, 12, 46, 40)
-        assert status['last_reconfiguration'] == datetime(2012, 1, 3, 13, 56, 40)
+        for expected in self.expected.get_bird_status():
+            status = self.pybird.get_bird_status()
+            print(json.dumps(status, cls=JSONEncoder))
+            assert expected == status
+
+        assert not self.mock_bird.unused_tests()
 
 
 class MockBirdTestCase(MockBirdTestBase):
@@ -253,7 +285,6 @@ class MockBirdTestCase(MockBirdTestBase):
 0000 
 """
 
-
 class MockBird(Thread):
     """Very small Mock(ing?) BIRD control socket, that can understand
     a few commands and reply with static output. Note that this is the same
@@ -270,17 +301,34 @@ class MockBird(Thread):
         self.socket.bind(socket_file)
         self.socket.listen(1)
 
+        self.responses = {}
+
+    def get_response(self, cmd):
+        try:
+            return next(self.responses.get(cmd, iter([])))
+        except StopIteration:
+            self.responses[cmd] = get_responses(cmd)
+            return next(self.responses[cmd])
+
+    def unused_tests(self):
+        left_tests = []
+        for k, v in self.responses.items():
+            try:
+                next(v)
+                left_tests.append(k)
+            except StopIteration:
+                pass
+
     def run(self):
         while 1:
             try:
                 conn, addr = self.socket.accept()
-                data = conn.recv(1024)
+                cmd = conn.recv(1024)
 
-                if not data or data == 'terminate mockserver':
+                if not cmd or cmd == 'terminate mockserver':
                     break
 
-                for res in get_responses(data):
-                    conn.send(res)
+                conn.send(self.get_response(cmd))
 
             except Exception as e:
                 conn.send("{}: {}".format(str(e), traceback.format_exc()))
