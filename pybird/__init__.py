@@ -448,19 +448,19 @@ class PyBird(object):
     def _calculate_datetime(self, value, now=datetime.now()):
         """Turn the BIRD date format into a python datetime."""
 
-        # Case 1: YYYY-MM-DD HH:MM:SS
+        # Case: YYYY-MM-DD HH:MM:SS
         try:
-            return datetime(int(value[:4]), int(value[5:7]), int(value[8:10]), int(value[11:13]), int(value[14:16]), int(value[17:19]))
+            return datetime(*map(int, (value[:4], value[5:7], value[8:10], value[11:13], value[14:16], value[17:19])))
         except ValueError:
             pass
 
-        # Case 1: YYYY-MM-DD
+        # Case: YYYY-MM-DD
         try:
-            return datetime(int(value[:4]), int(value[5:7]), int(value[8:10]))
+            return datetime(*map(int, (value[:4], value[5:7], value[8:10])))
         except ValueError:
             pass
 
-        # Case 3: HH:mm or HH:mm:ss timestamp
+        # Case: HH:mm or HH:mm:ss timestamp
         try:
             try:
                 parsed_value = datetime.strptime(value, "%H:%M")
@@ -475,12 +475,11 @@ class PyBird(object):
                 result_date = result_date - timedelta(days=1)
 
             return result_date
-
         except ValueError:
             # It's a different format, keep on processing
             pass
 
-        # Case 4: "Jun13" timestamp
+        # Case: "Jun13" timestamp
         try:
             parsed = datetime.strptime(value, '%b%d')
 
@@ -503,7 +502,7 @@ class PyBird(object):
         except ValueError:
             pass
 
-        # Case 5: plain year
+        # Case: plain year
         try:
             year = int(value)
             return datetime(year, 1, 1)

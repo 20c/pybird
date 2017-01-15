@@ -20,6 +20,8 @@ def test_date(bird):
 
 
 def test_time(bird):
+    now = datetime.datetime.now()
+
     expected = datetime.datetime.combine(now, datetime.time(14, 20))
     assert expected == bird._calculate_datetime('14:20')
 
