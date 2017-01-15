@@ -73,14 +73,24 @@ class PyBird(object):
         else:
             return data
 
+    def get_routes(self, peer=None):
+        query = "show route all"
+        data = self._send_query(query)
+        return self._parse_route_data(data)
+
+    # deprecated by get_routes_received
     def get_peer_prefixes_announced(self, peer_name):
         """Get prefixes announced by a specific peer, without applying
         filters - i.e. this includes routes which were not accepted"""
         clean_peer_name = self._clean_input(peer_name)
         query = "show route table T_%s all protocol %s" % (
             clean_peer_name, clean_peer_name)
+        print(query)
         data = self._send_query(query)
         return self._parse_route_data(data)
+
+    def get_routes_received(self, peer=None):
+        return self.get_peer_prefixes_announced(peer)
 
     def get_peer_prefixes_exported(self, peer_name):
         """Get prefixes exported TO a specific peer"""
@@ -325,6 +335,7 @@ class PyBird(object):
         raw_datetime = elements[4]
         last_change = self._calculate_datetime(raw_datetime)
 
+# XXX add table
         return {
             'name': elements[0],
             'protocol': elements[1],
@@ -378,7 +389,7 @@ class PyBird(object):
             'description': 'description',
             'neighbor id': 'router_id',
             'neighbor address': 'address',
-            'neighbor AS': 'asn',
+            'neighbor as': 'asn',
             }
         lineiterator = iter(peer_detail_raw)
 
@@ -391,6 +402,7 @@ class PyBird(object):
                 routes = self.routes_field_re.findall(value)[0]
                 result['routes_imported'] = int(routes[0])
                 result['routes_exported'] = int(routes[1])
+#  XXX PREFERRED
 
             if field.lower() in route_change_fields:
                 (received, rejected, filtered, ignored, accepted) = value.split()
@@ -433,9 +445,9 @@ class PyBird(object):
         else:
             return (None, line)
 
-    def _calculate_datetime(self, value):
+    def _calculate_datetime(self, value, now=datetime.now()):
         """Turn the BIRD date format into a python datetime."""
-        now = datetime.now()
+
         # Case 1: YYYY-MM-DD HH:MM:SS
         try:
             return datetime(int(value[:4]), int(value[5:7]), int(value[8:10]), int(value[11:13]), int(value[14:16]), int(value[17:19]))
@@ -448,9 +460,14 @@ class PyBird(object):
         except ValueError:
             pass
 
-        # Case 3: HH:mm timestamp
+        # Case 3: HH:mm or HH:mm:ss timestamp
         try:
-            parsed_value = datetime.strptime(value, "%H:%M")
+            try:
+                parsed_value = datetime.strptime(value, "%H:%M")
+
+            except ValueError:
+                parsed_value = datetime.strptime(value, "%H:%M:%S")
+
             result_date = datetime(
                 now.year, now.month, now.day, parsed_value.hour, parsed_value.minute)
 
@@ -465,16 +482,23 @@ class PyBird(object):
 
         # Case 4: "Jun13" timestamp
         try:
-            # Run this for a (fake) leap year, or 29 feb will get us in trouble
-            parsed_value = datetime.strptime("1996 " + value, "%Y %b%d")
-            result_date = datetime(
-                now.year, parsed_value.month, parsed_value.day)
+            parsed = datetime.strptime(value, '%b%d')
 
-            if now.month <= parsed_value.month and now.day < parsed_value.day:
-                # This may have an off-by-one-day issue with leap years, but
-                # that's not important
-                result_date = result_date - timedelta(days=365)
+            # if now is past the month, it's this year, else last year
+            if now.month == parsed.month:
+                # bird shows time for same day
+                if now.day <= parsed.day:
+                    year = now.year - 1
+                else:
+                    year = now.year
 
+            elif now.month > parsed.month:
+                year = now.year
+
+            else:
+                year = now.year - 1
+
+            result_date = datetime(year, parsed.month, parsed.day)
             return result_date
         except ValueError:
             pass

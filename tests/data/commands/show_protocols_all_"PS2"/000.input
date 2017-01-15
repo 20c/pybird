@@ -1,6 +1,6 @@
 0001 BIRD 1.3.0 ready.
 2002-name     proto    table    state  since       info
-1002-PS2      BGP      T_PS2    up     14:20       Established   
+1002-PS2      BGP      T_PS2    up     2010-06-29  Established   
 1006-  Description:    Peering AS8954 - InTouch
    Preference:     100
    Input filter:   ACCEPT

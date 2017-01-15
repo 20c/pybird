@@ -38,8 +38,10 @@ class JSONEncoder(json.JSONEncoder):
 
 
 class MockBirdTestBase(unittest.TestCase):
-    """Base class which sets up a MockBird - a tiny fake BIRD
-    control running on a unix socket"""
+    """
+    base class which sets up a MockBird - a tiny fake BIRD control running on
+    a unix socket
+    """
 
     def setUp(self):
         tmp_path = mkdtemp()
@@ -133,13 +135,7 @@ class PyBirdTestCase(MockBirdTestBase):
         for correctness."""
         ps2_status = self.pybird.get_peer_status("PS2")
         assert ps2_status['up']
-
-        # The test data says 14:20, so that could be today or yesterday
-        now = datetime.now()
-        expected_date = datetime(now.year, now.month, now.day, 14, 20)
-        if now.hour < 14 or now.hour == 14 and now.minute < 20:
-            expected_date = expected_date - timedelta(days=1)
-        assert ps2_status['last_change'] == expected_date
+        assert ps2_status['last_change'] == datetime(2010, 6, 29)
         assert ps2_status['state'] == "Established"
         assert ps2_status['routes_imported'] == 24
         assert ps2_status['routes_exported'] == 23
@@ -151,7 +147,7 @@ class PyBirdTestCase(MockBirdTestBase):
         ps1_status = self.pybird.get_peer_status("PS1")
         self.assertFalse(ps1_status['up'])
 
-        assert ps1_status['last_change'] == datetime(now.year, 6, 13)
+        assert ps1_status['last_change'] == datetime(2010, 6, 29)
         assert ps1_status['state'] == "Passive"
 
     def test_specific_peer_prefixes_announced(self):
@@ -233,7 +229,7 @@ class MockBirdTestCase(MockBirdTestBase):
         assert data == """
 0001 BIRD 1.3.0 ready.
 2002-name     proto    table    state  since       info
-1002-device1  Device   master   up     Jun13       
+1002-device1  Device   master   up     2010-06-29  
 1006-  Preference:     240
   Input filter:   ACCEPT
   Output filter:  REJECT
@@ -244,7 +240,7 @@ class MockBirdTestCase(MockBirdTestBase):
     Export updates:              0          0          0        ---          0
     Export withdraws:            0        ---        ---        ---          0
 
-1002-P_PS1    Pipe     master   up     Jun13       => T_PS1
+1002-P_PS1    Pipe     master   up     2010-06-29  => T_PS1
 1006-  Preference:     70
   Input filter:   <NULL>
   Output filter:  <NULL>
@@ -255,7 +251,7 @@ class MockBirdTestCase(MockBirdTestBase):
     Export updates:              0          0          0          0          0
     Export withdraws:            0          0        ---          0          0
 
-1002-PS1      BGP      T_PS1    start  Jun13       Passive       
+1002-PS1      BGP      T_PS1    start  2010-06-29  Passive       
 1006-  Description:    Peering AS8954 - InTouch
   Preference:     100
   Input filter:   ACCEPT
@@ -268,7 +264,7 @@ class MockBirdTestCase(MockBirdTestBase):
     Export withdraws:            0        ---        ---        ---          0
   BGP state:          Passive
 
-1002-P_PS2    Pipe     master   up     14:20       => T_PS2
+1002-P_PS2    Pipe     master   up     2010-06-29  => T_PS2
 1006-  Preference:     70
   Input filter:   <NULL>
   Output filter:  <NULL>
@@ -279,7 +275,7 @@ class MockBirdTestCase(MockBirdTestBase):
     Export updates:              0          0          0          0          0
     Export withdraws:            0          0        ---          0          0
 
-1002-PS2      BGP      T_PS2    start  14:20       Established       
+1002-PS2      BGP      T_PS2    start  2010-06-29  Established       
 1006-  Description:    Peering AS8954 - InTouch
   Preference:     100
   Input filter:   ACCEPT
@@ -305,9 +301,11 @@ class MockBirdTestCase(MockBirdTestBase):
 """
 
 class MockBird(Thread):
-    """Very small Mock(ing?) BIRD control socket, that can understand
+    """
+    very small Mock(ing?) BIRD control socket, that can understand
     a few commands and reply with static output. Note that this is the same
-    for IPv4 and IPv6. This Mock BIRD only accepts one query per connect."""
+    for IPv4 and IPv6. This Mock BIRD only accepts one query per connect.
+    """
 
     def __init__(self, socket_file):
         Thread.__init__(self)
@@ -323,6 +321,10 @@ class MockBird(Thread):
         self.responses = {}
 
     def get_response(self, cmd):
+        """
+        loops through multiple responses each time it gets the same command
+        then starts over again
+        """
         try:
             return next(self.responses.get(cmd, iter([])))
         except StopIteration:

@@ -1,7 +1,7 @@
 
 0001 BIRD 1.3.0 ready.
 2002-name     proto    table    state  since       info
-1002-device1  Device   master   up     Jun13       
+1002-device1  Device   master   up     2010-06-29  
 1006-  Preference:     240
   Input filter:   ACCEPT
   Output filter:  REJECT
@@ -12,7 +12,7 @@
     Export updates:              0          0          0        ---          0
     Export withdraws:            0        ---        ---        ---          0
 
-1002-P_PS1    Pipe     master   up     Jun13       => T_PS1
+1002-P_PS1    Pipe     master   up     2010-06-29  => T_PS1
 1006-  Preference:     70
   Input filter:   <NULL>
   Output filter:  <NULL>
@@ -23,7 +23,7 @@
     Export updates:              0          0          0          0          0
     Export withdraws:            0          0        ---          0          0
 
-1002-PS1      BGP      T_PS1    start  Jun13       Passive       
+1002-PS1      BGP      T_PS1    start  2010-06-29  Passive       
 1006-  Description:    Peering AS8954 - InTouch
   Preference:     100
   Input filter:   ACCEPT
@@ -36,7 +36,7 @@
     Export withdraws:            0        ---        ---        ---          0
   BGP state:          Passive
 
-1002-P_PS2    Pipe     master   up     14:20       => T_PS2
+1002-P_PS2    Pipe     master   up     2010-06-29  => T_PS2
 1006-  Preference:     70
   Input filter:   <NULL>
   Output filter:  <NULL>
@@ -47,7 +47,7 @@
     Export updates:              0          0          0          0          0
     Export withdraws:            0          0        ---          0          0
 
-1002-PS2      BGP      T_PS2    start  14:20       Established       
+1002-PS2      BGP      T_PS2    start  2010-06-29  Established       
 1006-  Description:    Peering AS8954 - InTouch
   Preference:     100
   Input filter:   ACCEPT
