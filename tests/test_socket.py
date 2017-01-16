@@ -1,6 +1,5 @@
 
 from datetime import datetime, timedelta, date
-import json
 import os
 import pytest
 import socket
@@ -11,30 +10,11 @@ import traceback
 import unittest
 
 from pybird import PyBird
+import filedata
 
 
 this_dir = os.path.dirname(__file__)
 data_dir = os.path.join(this_dir, 'data')
-
-
-def json_hook(data):
-    date_keys = (
-        'last_change',
-        'last_reboot',
-        'last_reconfiguration',
-        )
-    for key in date_keys:
-        if key in data:
-            data[key] = datetime.strptime(data[key], "%Y-%m-%dT%H:%M:%S")
-    return data
-
-
-class JSONEncoder(json.JSONEncoder):
-    def default(self, o):
-        if isinstance(o, datetime):
-            return o.isoformat()
-
-        return json.JSONEncoder.default(self, o)
 
 
 class MockBirdTestBase(unittest.TestCase):
@@ -82,7 +62,7 @@ def get_expected(cmd):
             path = fname + '.expected'
             if os.path.exists(path):
                 with open(path) as fobj:
-                    yield json.load(fobj, object_hook=json_hook)
+                    yield filedata.load(fobj)
             else:
                 yield ''
 
@@ -116,7 +96,7 @@ class PyBirdTestCase(MockBirdTestBase):
 
         for expected in getattr(self.expected, name)(*args):
             result = func(*args)
-            print(json.dumps(result, cls=JSONEncoder))
+            print(filedata.dumps(result))
             assert expected == result
 
     def test_all_peer_status(self):
@@ -190,7 +170,7 @@ class PyBirdTestCase(MockBirdTestBase):
         """Test that we can fetch the status & uptime info"""
         for expected in self.expected.get_bird_status():
             status = self.pybird.get_bird_status()
-            print(json.dumps(status, cls=JSONEncoder))
+            print(filedata.dumps(status))
             assert expected == status
 
         assert not self.mock_bird.unused_tests()
@@ -198,13 +178,13 @@ class PyBirdTestCase(MockBirdTestBase):
     def test_get_peer_prefixes_exported(self):
         for expected in self.expected.get_peer_prefixes_exported('peer'):
             status = self.pybird.get_peer_prefixes_exported('peer')
-            print(json.dumps(status, cls=JSONEncoder))
+            print(filedata.dumps(status))
             assert expected == status
 
     def test_get_prefix_info(self):
         for expected in self.expected.get_prefix_info('8.8.8.8', 'peer'):
             status = self.pybird.get_prefix_info('8.8.8.8', 'peer')
-            print(json.dumps(status, cls=JSONEncoder))
+            print(filedata.dumps(status))
             assert expected == status
 
 
