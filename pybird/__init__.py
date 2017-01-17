@@ -76,7 +76,8 @@ class PyBird(object):
     def get_routes(self, peer=None):
         query = "show route all"
         data = self._send_query(query)
-        return self._parse_route_data(data)
+        parsed = self._parse_route_data(data)
+        return parsed
 
     # deprecated by get_routes_received
     def get_peer_prefixes_announced(self, peer_name):
@@ -181,22 +182,41 @@ class PyBird(object):
 
                 # Save the summary+detail info in our result
                 route_detail.update(route_summary)
-                routes.append(route_detail)
                 # Do not use this summary again on the next run
                 route_summary = None
+                routes.append(route_detail)
+
             if field_number == 8001:
                 # network not in table
                 return []
+
         return routes
+
+    def _re_route_summary(self):
+        return re.compile(
+            "(?P<prefix>[a-f0-9\.:\/]+)?\s+"
+            "(?:via\s+(?P<peer>[^\s]+) on (?P<interface>[^\s]+)|(?:\w+)?)?\s*"
+            "\[(?P<source>[^\s]+) (?P<time>[^\]\s]+)(?: from (?P<peer2>[^\s]+))?\]"
+            )
 
     def _parse_route_summary(self, line):
         """Parse a line like:
             2a02:898::/32      via 2001:7f8:1::a500:8954:1 on eth1 [PS2 12:46] * (100) [AS8283i]
         """
+        match = self._re_route_summary().match(line)
+        if not match:
+            raise ValueError("couldn't parse line '{}'".format(line))
+            print("MATCHED: {}".format(match.groupdict()))
         # Note that split acts on sections of whitespace - not just single
         # chars
-        elements = line.strip().split()
-        return {'prefix': elements[0], 'peer': elements[2]}
+        route = match.groupdict()
+
+        # python regex doesn't allow group name reuse
+        if not route['peer']:
+            route['peer'] = route.pop('peer2')
+        else:
+            del route['peer2']
+        return route
 
     def _parse_route_detail(self, lines):
         """Parse a blob like:
