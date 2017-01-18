@@ -1,0 +1,1 @@
+[{"origin": "IGP", "as_path": "65001", "community": "65003:54321 65001:12345", "source": "cid3_as65003", "prefix": "10.255.10.0/24", "next_hop": "10.203.0.143", "time": "2017-01-15", "peer": "10.203.0.143", "local_pref": "100", "interface": null}]
