@@ -35,6 +35,11 @@ class PyBird(object):
             raise ValueError("config_file is not set")
         return self._read_file(self.config_file)
 
+    def put_config(self, data):
+        if not self.config_file:
+            raise ValueError("config_file is not set")
+        return self._write_file(data, self.config_file)
+
     def get_bird_status(self):
         """Get the status of the BIRD instance. Returns a dict with keys:
         - router_id (string)
@@ -542,17 +547,29 @@ class PyBird(object):
         except ValueError:
             raise ValueError("Can not parse datetime: [%s]" % value)
 
-    def _read_remote_cmd(self, cmd):
+    def _remote_cmd(self, cmd, inp=None):
         to = '{}@{}'.format(self.user, self.hostname)
-        res, stderr = Popen(['ssh', to, cmd], stdout=PIPE).communicate()
+        print(to + " " +  cmd)
+        proc = Popen(['ssh', to, cmd], stdin=PIPE, stdout=PIPE)
+        res, stderr = proc.communicate(input=inp)
         return res
 
     def _read_file(self, fname):
         if self.hostname:
             cmd = "cat " + fname
-            return self._read_remote_cmd(cmd)
+            return self._remote_cmd(cmd)
         with open(fname) as fobj:
             return fobj.read()
+
+    def _write_file(self, data, fname):
+        if self.hostname:
+            cmd = "cat >" + fname
+            self._remote_cmd(cmd, inp=data)
+            return
+
+        with open(fname, 'w') as fobj:
+            fobj.write(data)
+            return
 
     def _send_query(self, query):
         self.log.debug("query %s" % query)
@@ -565,7 +582,7 @@ class PyBird(object):
         mimic a direct socket connect over ssh
         """
         cmd = "{} -v -s {} '{}'".format(self.bird_cmd, self.socket_file, query)
-        res = self._read_remote_cmd(cmd)
+        res = self._remote_cmd(cmd)
         res += "0000\n"
         return res
 
