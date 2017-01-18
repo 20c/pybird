@@ -12,17 +12,28 @@ from subprocess import Popen, PIPE
 class PyBird(object):
     ignored_field_numbers = [0, 1, 13, 1008, 2002, 9001]
 
-    def __init__(self, socket_file, hostname=None, user=None, password=None):
+    def __init__(self, socket_file, hostname=None, user=None, password=None, config_file=None, bird_cmd=None):
         """Basic pybird setup.
         Required argument: socket_file: full path to the BIRD control socket."""
         self.socket_file = socket_file
         self.hostname = hostname
         self.user = user
         self.password = password
+        self.config_file = config_file
+        if not bird_cmd:
+            self.bird_cmd = 'birdc'
+        else:
+            self.bird_cmd = bird_cmd
+
         self.clean_input_re = re.compile('\W+')
         self.field_number_re = re.compile('^(\d+)[ -]')
         self.routes_field_re = re.compile('(\d+) imported, (\d+) exported')
         self.log = logging.getLogger(__name__)
+
+    def get_config(self):
+        if not self.config_file:
+            raise ValueError("config_file is not set")
+        return self._read_file(self.config_file)
 
     def get_bird_status(self):
         """Get the status of the BIRD instance. Returns a dict with keys:
@@ -531,6 +542,18 @@ class PyBird(object):
         except ValueError:
             raise ValueError("Can not parse datetime: [%s]" % value)
 
+    def _read_remote_cmd(self, cmd):
+        to = '{}@{}'.format(self.user, self.hostname)
+        res, stderr = Popen(['ssh', to, cmd], stdout=PIPE).communicate()
+        return res
+
+    def _read_file(self, fname):
+        if self.hostname:
+            cmd = "cat " + fname
+            return self._read_remote_cmd(cmd)
+        with open(fname) as fobj:
+            return fobj.read()
+
     def _send_query(self, query):
         self.log.debug("query %s" % query)
         if self.hostname:
@@ -541,10 +564,8 @@ class PyBird(object):
         """
         mimic a direct socket connect over ssh
         """
-        cmd = "birdc -v -s {} '{}'".format(self.socket_file, query)
-        to = '{}@{}'.format(self.user, self.hostname)
-
-        res, stderr = Popen(['ssh', to, cmd], stdout=PIPE).communicate()
+        cmd = "{} -v -s {} '{}'".format(self.bird_cmd, self.socket_file, query)
+        res = self._read_remote_cmd(cmd)
         res += "0000\n"
         return res
 
