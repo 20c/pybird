@@ -73,8 +73,12 @@ class PyBird(object):
         else:
             return data
 
-    def get_routes(self, peer=None):
+    def get_routes(self, prefix=None, peer=None):
         query = "show route all"
+        if prefix:
+            query += " for {}".format(prefix)
+        if peer:
+            query += " protocol {}".format(peer)
         data = self._send_query(query)
         parsed = self._parse_route_data(data)
         return parsed
@@ -86,7 +90,6 @@ class PyBird(object):
         clean_peer_name = self._clean_input(peer_name)
         query = "show route table T_%s all protocol %s" % (
             clean_peer_name, clean_peer_name)
-        print(query)
         data = self._send_query(query)
         return self._parse_route_data(data)
 
@@ -206,7 +209,6 @@ class PyBird(object):
         match = self._re_route_summary().match(line)
         if not match:
             raise ValueError("couldn't parse line '{}'".format(line))
-            print("MATCHED: {}".format(match.groupdict()))
         # Note that split acts on sections of whitespace - not just single
         # chars
         route = match.groupdict()
@@ -530,6 +532,7 @@ class PyBird(object):
             raise ValueError("Can not parse datetime: [%s]" % value)
 
     def _send_query(self, query):
+        self.log.debug("query %s" % query)
         if self.hostname:
             return self._remote_query(query)
         return self._socket_query(query)
