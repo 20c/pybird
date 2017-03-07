@@ -440,7 +440,6 @@ bogus undo:
         raw_datetime = elements[4]
         last_change = self._calculate_datetime(raw_datetime)
 
-# XXX add table
         return {
             'name': elements[0],
             'protocol': elements[1],
@@ -507,7 +506,6 @@ bogus undo:
                 routes = self.routes_field_re.findall(value)[0]
                 result['routes_imported'] = int(routes[0])
                 result['routes_exported'] = int(routes[1])
-#  XXX PREFERRED
 
             if field.lower() in route_change_fields:
                 (received, rejected, filtered, ignored, accepted) = value.split()
