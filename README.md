@@ -93,6 +93,12 @@ mocked BIRD instance, with fixed but real responses, that listens on a real
 UNIX socket. This means the tests do not only test parsing, but also socket
 interaction.
 
+#### Parsing tests
+
+To automatically add parsing tests, just add `$test_name` with extensions
+.input and .expected to the correct parsing directory under
+<tests/data/parse/>.
+
 
 ### License
 
