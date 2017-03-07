@@ -25,9 +25,9 @@ class PyBird(object):
         else:
             self.bird_cmd = bird_cmd
 
-        self.clean_input_re = re.compile('\W+')
-        self.field_number_re = re.compile('^(\d+)[ -]')
-        self.routes_field_re = re.compile('(\d+) imported, (\d+) exported')
+        self.clean_input_re = re.compile(r'\W+')
+        self.field_number_re = re.compile(r'^(\d+)[ -]')
+        self.routes_field_re = re.compile(r'(\d+) imported, (\d+) exported')
         self.log = logging.getLogger(__name__)
 
     def get_config(self):
@@ -280,7 +280,7 @@ bogus undo:
 
     def _re_route_summary(self):
         return re.compile(
-            "(?P<prefix>[a-f0-9\.:\/]+)?\s+"
+            r"(?P<prefix>[a-f0-9\.:\/]+)?\s+"
             "(?:via\s+(?P<peer>[^\s]+) on (?P<interface>[^\s]+)|(?:\w+)?)?\s*"
             "\[(?P<source>[^\s]+) (?P<time>[^\]\s]+)(?: from (?P<peer2>[^\s]+))?\]"
             )
