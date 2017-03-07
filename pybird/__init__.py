@@ -40,6 +40,19 @@ class PyBird(object):
             raise ValueError("config_file is not set")
         return self._write_file(data, self.config_file)
 
+    def commit_config(self):
+        return
+
+    def check_config(self):
+        query = "configure check"
+        data = self._send_query(query)
+        if not self.socket_file:
+            return data
+
+        err = self._parse_configure(data)
+        if err:
+            raise ValueError(err)
+
     def get_bird_status(self):
         """Get the status of the BIRD instance. Returns a dict with keys:
         - router_id (string)
@@ -49,7 +62,9 @@ class PyBird(object):
         data = self._send_query(query)
         if not self.socket_file:
             return data
+        return self._parse_status(data)
 
+    def _parse_status(self, data):
         line_iterator = iter(data.splitlines())
         data = {}
 
@@ -60,7 +75,10 @@ class PyBird(object):
             if field_number in self.ignored_field_numbers:
                 continue
 
-            if field_number == 1011:
+            if field_number == 1000:
+                data['version'] = line.split(' ')[1]
+
+            elif field_number == 1011:
                 # Parse the status section, which looks like:
                 # 1011-Router ID is 195.69.146.34
                 # Current server time is 10-01-2012 10:24:37
@@ -75,6 +93,42 @@ class PyBird(object):
 
         return data
 
+    def _parse_configure(self, data):
+        """
+        returns error on error, None on success
+0001 BIRD 1.4.5 ready.
+0002-Reading configuration from /home/grizz/c/20c/tstbird/dev3.conf
+8002 /home/grizz/c/20c/tstbird/dev3.conf, line 3: syntax error
+
+0001 BIRD 1.4.5 ready.
+0002-Reading configuration from /home/grizz/c/20c/tstbird/dev3.conf
+0020 Configuration OK
+
+0004 Reconfiguration in progress
+0018 Reconfiguration confirmed
+0003 Reconfigured
+
+bogus undo:
+0019 Nothing to do
+
+        """
+        error_fields = (19, 8002)
+        success_fields = (3, 4, 18, 20)
+
+        for line in data.splitlines():
+            fieldno, line = self._extract_field_number(line)
+
+            if fieldno == 2:
+                if not self.config_file:
+                    self.config_file = line.split(' ')[3]
+
+            elif fieldno in error_fields:
+                return line
+
+            elif fieldno in success_fields:
+                return
+        raise ValueError("unable to parse configure response")
+
     def _parse_router_status_line(self, line, parse_date=False):
         """Parse a line like:
             Current server time is 10-01-2012 10:24:37
@@ -88,6 +142,19 @@ class PyBird(object):
                 return datetime.strptime(data, '%d-%m-%Y %H:%M:%S')
         else:
             return data
+
+    def configure(self, soft=False, timeout=0):
+        """
+        birdc configure command
+        """
+        query = "configure check"
+        data = self._send_query(query)
+        if not self.socket_file:
+            return data
+
+        err = self._parse_configure(data)
+        if err:
+            raise ValueError(err)
 
     def get_routes(self, prefix=None, peer=None):
         query = "show route all"
@@ -549,7 +616,6 @@ class PyBird(object):
 
     def _remote_cmd(self, cmd, inp=None):
         to = '{}@{}'.format(self.user, self.hostname)
-        print(to + " " +  cmd)
         proc = Popen(['ssh', to, cmd], stdin=PIPE, stdout=PIPE)
         res, stderr = proc.communicate(input=inp)
         return res

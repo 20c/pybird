@@ -7,6 +7,7 @@
 - bird_cmd
 - peer fields: description, address, asn
 - route fields: interface, source, time
+- status fields: version
 - parsing test framework
 
 ### Fixed

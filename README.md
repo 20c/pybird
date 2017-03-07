@@ -84,6 +84,7 @@ And any other BGP attribute fields BIRD has found.
 - ``router_id``: BGP Router ID as string
 - ``last_reboot``: Last BIRD restart time as datetime
 - ``last_reconfiguration``: Last BIRD config change as datetime
+- ``version``: BIRD version as string
 
 
 ### Test suite
