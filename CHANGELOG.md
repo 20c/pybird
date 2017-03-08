@@ -1,7 +1,16 @@
 
-# Change Log
+# pybird changelog
 
 ## [Unreleased]
+### Added
+### Fixed
+### Changed
+### Deprecated
+### Removed
+### Security
+
+
+## [1.1.0]
 ### Added
 - config_file, get_config()
 - bird_cmd
@@ -12,9 +21,3 @@
 
 ### Fixed
 - handle date format for newer bird
-
-### Changed
-### Deprecated
-### Removed
-### Security
-
