@@ -281,8 +281,8 @@ bogus undo:
     def _re_route_summary(self):
         return re.compile(
             r"(?P<prefix>[a-f0-9\.:\/]+)?\s+"
-            "(?:via\s+(?P<peer>[^\s]+) on (?P<interface>[^\s]+)|(?:\w+)?)?\s*"
-            "\[(?P<source>[^\s]+) (?P<time>[^\]\s]+)(?: from (?P<peer2>[^\s]+))?\]"
+            r"(?:via\s+(?P<peer>[^\s]+) on (?P<interface>[^\s]+)|(?:\w+)?)?\s*"
+            r"\[(?P<source>[^\s]+) (?P<time>[^\]\s]+)(?: from (?P<peer2>[^\s]+))?\]"
             )
 
     def _parse_route_summary(self, line):
