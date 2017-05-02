@@ -48,6 +48,32 @@ You can also call ``get_peer_status()`` without a peer name, to get an array
 with all the BGP peers.
 
 
+### Example web server with cherrypy
+
+Thanks to @martzuk
+
+```py
+import cherrypy
+import json
+from pybird import PyBird
+
+class PybirdAPI(object):
+    pybird = PyBird(socket_file='/run/bird.ctl')
+
+    @cherrypy.expose
+    def index(self):
+        return "PybirdAPI"
+
+    @cherrypy.expose
+    def peer_state(self):
+  peer_state = self.pybird.get_peer_status()
+        return json.dumps(str(peer_state))
+
+if __name__ == '__main__':
+    cherrypy.quickstart(PybirdAPI())
+```
+
+
 ### Full field list for peers
 
 All fields that are decoded, if present:
