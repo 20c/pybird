@@ -66,7 +66,7 @@ class PybirdAPI(object):
 
     @cherrypy.expose
     def peer_state(self):
-  peer_state = self.pybird.get_peer_status()
+        peer_state = self.pybird.get_peer_status()
         return json.dumps(str(peer_state))
 
 if __name__ == '__main__':
