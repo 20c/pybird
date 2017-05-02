@@ -70,6 +70,7 @@ class PyBird(object):
 
         for line in line_iterator:
             line = line.strip()
+            self.log.debug("PyBird: parse status: %s" % line)
             (field_number, line) = self._extract_field_number(line)
 
             if field_number in self.ignored_field_numbers:
@@ -85,11 +86,19 @@ class PyBird(object):
                 # Last reboot on 03-01-2012 12:46:40
                 # Last reconfiguration on 03-01-2012 12:46:40
                 data['router_id'] = self._parse_router_status_line(line)
+
                 line = next(line_iterator)  # skip current server time
+                self.log.debug("PyBird: parse status: %s" % line)
+
+                line = next(line_iterator)
+                self.log.debug("PyBird: parse status: %s" % line)
                 data['last_reboot'] = self._parse_router_status_line(
-                    next(line_iterator), parse_date=True)
+                    line, parse_date=True)
+
+                line = next(line_iterator)
+                self.log.debug("PyBird: parse status: %s" % line)
                 data['last_reconfiguration'] = self._parse_router_status_line(
-                    next(line_iterator), parse_date=True)
+                    line, parse_date=True)
 
         return data
 
@@ -116,6 +125,7 @@ bogus undo:
         success_fields = (3, 4, 18, 20)
 
         for line in data.splitlines():
+            self.log.debug("PyBird: parse configure: %s" % line)
             fieldno, line = self._extract_field_number(line)
 
             if fieldno == 2:
@@ -163,8 +173,7 @@ bogus undo:
         if peer:
             query += " protocol {}".format(peer)
         data = self._send_query(query)
-        parsed = self._parse_route_data(data)
-        return parsed
+        return self._parse_route_data(data)
 
     # deprecated by get_routes_received
     def get_peer_prefixes_announced(self, peer_name):
@@ -237,10 +246,12 @@ bogus undo:
 
         route_summary = None
 
+        self.log.debug("PyBird: parse route data: lines=%d" % len(lines))
         line_counter = -1
         while line_counter < len(lines) - 1:
             line_counter += 1
             line = lines[line_counter].strip()
+            self.log.debug("PyBird: parse route data: %s" % line)
             (field_number, line) = self._extract_field_number(line)
 
             if field_number in self.ignored_field_numbers:
@@ -250,6 +261,7 @@ bogus undo:
                 route_summary = self._parse_route_summary(line)
 
             route_detail = None
+
             if field_number == 1012:
                 if not route_summary:
                     # This is not detail of a BGP route
@@ -261,6 +273,7 @@ bogus undo:
                     route_detail_raw.append(line)
                     line_counter += 1
                     line = lines[line_counter]
+                    self.log.debug("PyBird: parse route data: %s" % line)
                 # this loop will have walked a bit too far, correct it
                 line_counter -= 1
 
@@ -315,6 +328,7 @@ bogus undo:
 
         for line in lines:
             line = line.strip()
+            self.log.debug("PyBird: parse route details: %s" % line)
             # remove 'BGP.'
             line = line[4:]
             parts = line.split(": ")
@@ -636,7 +650,7 @@ bogus undo:
             return
 
     def _send_query(self, query):
-        self.log.debug("query %s" % query)
+        self.log.debug("PyBird: query: %s" % query)
         if self.hostname:
             return self._remote_query(query)
         return self._socket_query(query)
