@@ -106,9 +106,9 @@ class PyBirdTestCase(MockBirdTestBase):
         self.run_method_test('get_peer_status')
 
     def test_nonexistant_peer_status(self):
-        """Test that we get None if the peer did not exist."""
+        """Test that we get [] if the peer did not exist."""
         status = self.pybird.get_peer_status("HAMSTER")
-        assert status == None
+        assert [] == status
 
     def test_specific_peer_status(self):
         """Test the retrieval of specific peer info, and check all the fields
