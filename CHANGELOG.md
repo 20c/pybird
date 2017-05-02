@@ -3,6 +3,15 @@
 
 ## [Unreleased]
 ### Added
+### Fixed
+### Changed
+### Deprecated
+### Removed
+### Security
+
+
+## [1.1.1]
+### Added
 - better debug logging for actual output
 
 ### Fixed
@@ -10,10 +19,6 @@
 
 ### Changed
 - get_routes returns []
-
-### Deprecated
-### Removed
-### Security
 
 
 ## [1.1.0]
