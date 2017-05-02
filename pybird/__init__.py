@@ -344,7 +344,7 @@ bogus undo:
         by a dict with fields. See README for a full list.
 
         If a peer_name argument is given, returns a single peer, represented
-        as a dict. If the peer is not found, returns None.
+        as a dict. If the peer is not found, returns a zero length array.
         """
         if peer_name:
             query = 'show protocols all "%s"' % self._clean_input(peer_name)
@@ -361,7 +361,7 @@ bogus undo:
             return peers
 
         if len(peers) == 0:
-            return None
+            return []
         elif len(peers) > 1:
             raise ValueError(
                 "Searched for a specific peer, but got multiple returned from BIRD?")
