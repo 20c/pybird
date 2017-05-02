@@ -3,8 +3,14 @@
 
 ## [Unreleased]
 ### Added
+- better debug logging for actual output
+
 ### Fixed
+- regex str warnings
+
 ### Changed
+- get_routes returns []
+
 ### Deprecated
 ### Removed
 ### Security
