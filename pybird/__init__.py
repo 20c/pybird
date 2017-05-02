@@ -125,7 +125,7 @@ bogus undo:
         success_fields = (3, 4, 18, 20)
 
         for line in data.splitlines():
-            self.log.debug("PyBird: parse configure: %s" % line)
+            self.log.debug("PyBird: parse configure: %s", line)
             fieldno, line = self._extract_field_number(line)
 
             if fieldno == 2:
