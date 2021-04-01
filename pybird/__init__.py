@@ -668,26 +668,29 @@ bogus undo:
         """Open a socket to the BIRD control socket, send the query and get
         the response.
         """
+        if not isinstance(query, bytes):
+            query = query.encode('utf-8')
+        if not query.endswith(b'\n'):
+            query += b'\n'
         sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         sock.connect(self.socket_file)
-        sock.send(query + "\n")
+        sock.send(query)
 
-        data = ''
-        prev_data = None
+        data = b''
 
-        while ((data.find("\n0000") == -1) and
-               (data.find("\n8003") == -1) and
-               (data.find("\n0013") == -1) and
-               (data.find("\n9001") == -1) and
-               (data.find("\n8001") == -1)):
-            data += sock.recv(1024)
-            if data == prev_data:
+        while ((data.find(b"\n0000") == -1) and
+               (data.find(b"\n8003") == -1) and
+               (data.find(b"\n0013") == -1) and
+               (data.find(b"\n9001") == -1) and
+               (data.find(b"\n8001") == -1)):
+            this_read = sock.recv(1024)
+            if not this_read:
                 self.log.debug(data)
                 raise ValueError("Could not read additional data from BIRD")
-            prev_data = data
+            data += this_read
 
         sock.close()
-        return str(data)
+        return data.decode('utf-8')
 
     def _clean_input(self, inp):
         """Clean the input string of anything not plain alphanumeric chars,
