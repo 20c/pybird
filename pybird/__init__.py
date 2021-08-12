@@ -508,6 +508,7 @@ bogus undo:
             'neighbor id': 'router_id',
             'neighbor address': 'address',
             'neighbor as': 'asn',
+            'source address': 'source',
             }
         lineiterator = iter(peer_detail_raw)
 
