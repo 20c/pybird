@@ -1,8 +1,8 @@
 Metadata-Version: 1.1
 Name: pybird
 Version: 1.0.10
-Author: Erik Romijn
-Author-email: eromijn at solidlinks nl
+Author: Sasha Romijn
+Author-email: github@mxsasha.eu
 Summary: BIRD interface handler for Python
 License: There's also ``get_prefix_info()`` to get the route info for a specified prefix, optionally limited to a specific peer.
 Description: .. -*- restructuredtext -*-
