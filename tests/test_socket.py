@@ -35,6 +35,13 @@ class MockBirdTestBase(unittest.TestCase):
         self._send_query('terminate mockserver')
 
     def _send_query(self, query):
+
+        if not isinstance(query, bytes):
+            query = query.encode("utf-8")
+
+        if not query.endswith(b"\n"):
+            query += b"\n"
+
         sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         sock.connect(self.socket_file)
         sock.send(query)
@@ -42,10 +49,12 @@ class MockBirdTestBase(unittest.TestCase):
         sock.settimeout(1)
         data = sock.recv(1024000)
         sock.close()
-        return str(data)
+        return data.decode("utf-8")
 
 
 def get_test_files(cmd):
+    if not isinstance(cmd, str):
+        cmd = cmd.decode("utf-8")
     dirname = cmd.strip().replace(' ', '_')
     dirname = os.path.join(data_dir, 'commands', dirname)
     if not os.path.isdir(dirname):
@@ -96,7 +105,6 @@ class PyBirdTestCase(MockBirdTestBase):
 
         for expected in getattr(self.expected, name)(*args):
             result = func(*args)
-            print(filedata.dumps(result))
             assert expected == result
 
     def test_all_peer_status(self):
@@ -170,7 +178,6 @@ class PyBirdTestCase(MockBirdTestBase):
         """Test that we can fetch the status & uptime info"""
         for expected in self.expected.get_bird_status():
             status = self.pybird.get_bird_status()
-            print(filedata.dumps(status))
             assert expected == status
 
         assert not self.mock_bird.unused_tests()
@@ -329,9 +336,12 @@ class MockBird(Thread):
                 if not cmd or cmd == 'terminate mockserver':
                     break
 
-                conn.send(self.get_response(cmd))
+                response = self.get_response(cmd)
+                if not isinstance(response, bytes):
+                    response = response.encode("utf-8")
+                conn.send(response)
 
             except Exception as e:
-                conn.send("{}: {}".format(str(e), traceback.format_exc()))
+                conn.send("{}: {}".format(str(e), traceback.format_exc()).encode("utf-8"))
 
             conn.close()

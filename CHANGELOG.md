@@ -10,6 +10,13 @@
 ### Security
 
 
+## [1.1.2]
+### Added
+- bird2 compatibility
+
+### Fixed
+- all tests are fixed and run again (on MacOS and Debian 11)
+
 ## [1.1.1]
 ### Added
 - better debug logging for actual output

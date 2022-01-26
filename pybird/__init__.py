@@ -141,10 +141,11 @@ bogus undo:
 
     def _parse_router_status_line(self, line, parse_date=False):
         """Parse a line like:
-            Current server time is 10-01-2012 10:24:37
+            Current server time is 10-01-2012 10:24:37.123
         optionally (if parse_date=True), parse it into a datetime"""
         data = line.strip().split(' ', 3)[-1]
         if parse_date:
+            data = data.split(".")[0]
             try:
                 return datetime.strptime(data, '%Y-%m-%d %H:%M:%S')
             # old versions of bird used DD-MM-YYYY
@@ -258,7 +259,13 @@ bogus undo:
                 continue
 
             if field_number == 1007:
-                route_summary = self._parse_route_summary(line)
+                try:
+                    route_summary = self._parse_route_summary(line)
+                except ValueError:
+                    # bird2 sends route summary on a new line
+                    line_counter += 1
+                    line = lines[line_counter].strip()
+                    route_summary = self._parse_route_summary(line)
 
             route_detail = None
 
@@ -513,7 +520,11 @@ bogus undo:
 
         for line in lineiterator:
             line = line.strip()
-            (field, value) = line.split(":", 1)
+            try:
+                (field, value) = line.split(":", 1)
+            except ValueError:
+                # skip lines "Channel ipv4/Channel ipv6"
+                continue
             value = value.strip()
 
             if field.lower() == "routes":
@@ -577,8 +588,9 @@ bogus undo:
         except ValueError:
             pass
 
-        # Case: HH:mm or HH:mm:ss timestamp
+        # Case: HH:mm:ss.nnn or HH:mm or HH:mm:ss timestamp
         try:
+            value = value.split('.')[0]     # strip any "".nnn" suffix
             try:
                 parsed_value = datetime.strptime(value, "%H:%M")
 
