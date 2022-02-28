@@ -10,7 +10,10 @@ from subprocess import Popen, PIPE
 
 
 class PyBird(object):
-    ignored_field_numbers = [0, 1, 13, 1008, 2002, 9001]
+    # BIRD reply codes: https://github.com/CZ-NIC/bird/blob/6c11dbcf28faa145cfb7310310a2a261fd4dd1f2/doc/reply_codes
+    ignored_field_numbers = (0, 1, 13, 1008, 2002, 9001)
+    error_fields = (13, 19, 8001, 8002, 8003, 9000, 9001, 9002)
+    success_fields = (0, 3, 4, 18, 20)
 
     def __init__(self, socket_file, hostname=None, user=None, password=None, config_file=None, bird_cmd=None):
         """Basic pybird setup.
@@ -121,8 +124,6 @@ bogus undo:
 0019 Nothing to do
 
         """
-        error_fields = (19, 8002)
-        success_fields = (3, 4, 18, 20)
 
         for line in data.splitlines():
             self.log.debug("PyBird: parse configure: %s", line)
@@ -132,10 +133,10 @@ bogus undo:
                 if not self.config_file:
                     self.config_file = line.split(' ')[3]
 
-            elif fieldno in error_fields:
+            elif fieldno in self.error_fields:
                 return line
 
-            elif fieldno in success_fields:
+            elif fieldno in self.success_fields:
                 return
         raise ValueError("unable to parse configure response")
 
@@ -690,11 +691,10 @@ bogus undo:
 
         data = b''
 
-        while ((data.find(b"\n0000") == -1) and
-               (data.find(b"\n8003") == -1) and
-               (data.find(b"\n0013") == -1) and
-               (data.find(b"\n9001") == -1) and
-               (data.find(b"\n8001") == -1)):
+        while True:
+            if any([data.find(f"\n{code:04}".encode("utf-8")) != -1
+                for code in self.error_fields + self.success_fields]):
+                break
             this_read = sock.recv(1024)
             if not this_read:
                 self.log.debug(data)
