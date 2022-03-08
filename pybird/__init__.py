@@ -159,7 +159,7 @@ bogus undo:
         """
         birdc configure command
         """
-        query = "configure check"
+        query = "configure"
         data = self._send_query(query)
         if not self.socket_file:
             return data
