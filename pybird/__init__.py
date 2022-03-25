@@ -574,8 +574,11 @@ bogus undo:
         else:
             return (None, line)
 
-    def _calculate_datetime(self, value, now=datetime.now()):
+    def _calculate_datetime(self, value, now=None):
         """Turn the BIRD date format into a python datetime."""
+
+        if not now:
+            now = datetime.now()
 
         # Case: YYYY-MM-DD HH:MM:SS
         try:
