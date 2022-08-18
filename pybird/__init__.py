@@ -10,7 +10,10 @@ from subprocess import Popen, PIPE
 
 
 class PyBird(object):
-    ignored_field_numbers = [0, 1, 13, 1008, 2002, 9001]
+    # BIRD reply codes: https://github.com/CZ-NIC/bird/blob/6c11dbcf28faa145cfb7310310a2a261fd4dd1f2/doc/reply_codes
+    ignored_field_numbers = (0, 1, 13, 1008, 2002, 9001)
+    error_fields = (13, 19, 8001, 8002, 8003, 9000, 9001, 9002)
+    success_fields = (0, 3, 4, 18, 20)
 
     def __init__(self, socket_file, hostname=None, user=None, password=None, config_file=None, bird_cmd=None):
         """Basic pybird setup.
@@ -121,8 +124,6 @@ bogus undo:
 0019 Nothing to do
 
         """
-        error_fields = (19, 8002)
-        success_fields = (3, 4, 18, 20)
 
         for line in data.splitlines():
             self.log.debug("PyBird: parse configure: %s", line)
@@ -132,19 +133,20 @@ bogus undo:
                 if not self.config_file:
                     self.config_file = line.split(' ')[3]
 
-            elif fieldno in error_fields:
+            elif fieldno in self.error_fields:
                 return line
 
-            elif fieldno in success_fields:
+            elif fieldno in self.success_fields:
                 return
         raise ValueError("unable to parse configure response")
 
     def _parse_router_status_line(self, line, parse_date=False):
         """Parse a line like:
-            Current server time is 10-01-2012 10:24:37
+            Current server time is 10-01-2012 10:24:37.123
         optionally (if parse_date=True), parse it into a datetime"""
         data = line.strip().split(' ', 3)[-1]
         if parse_date:
+            data = data.split(".")[0]
             try:
                 return datetime.strptime(data, '%Y-%m-%d %H:%M:%S')
             # old versions of bird used DD-MM-YYYY
@@ -157,7 +159,7 @@ bogus undo:
         """
         birdc configure command
         """
-        query = "configure check"
+        query = "configure"
         data = self._send_query(query)
         if not self.socket_file:
             return data
@@ -258,7 +260,13 @@ bogus undo:
                 continue
 
             if field_number == 1007:
-                route_summary = self._parse_route_summary(line)
+                try:
+                    route_summary = self._parse_route_summary(line)
+                except ValueError:
+                    # bird2 sends route summary on a new line
+                    line_counter += 1
+                    line = lines[line_counter].strip()
+                    route_summary = self._parse_route_summary(line)
 
             route_detail = None
 
@@ -514,7 +522,11 @@ bogus undo:
 
         for line in lineiterator:
             line = line.strip()
-            (field, value) = line.split(":", 1)
+            try:
+                (field, value) = line.split(":", 1)
+            except ValueError:
+                # skip lines "Channel ipv4/Channel ipv6"
+                continue
             value = value.strip()
 
             if field.lower() == "routes":
@@ -563,8 +575,11 @@ bogus undo:
         else:
             return (None, line)
 
-    def _calculate_datetime(self, value, now=datetime.now()):
+    def _calculate_datetime(self, value, now=None):
         """Turn the BIRD date format into a python datetime."""
+
+        if not now:
+            now = datetime.now()
 
         # Case: YYYY-MM-DD HH:MM:SS
         try:
@@ -578,8 +593,9 @@ bogus undo:
         except ValueError:
             pass
 
-        # Case: HH:mm or HH:mm:ss timestamp
+        # Case: HH:mm:ss.nnn or HH:mm or HH:mm:ss timestamp
         try:
+            value = value.split('.')[0]     # strip any "".nnn" suffix
             try:
                 parsed_value = datetime.strptime(value, "%H:%M")
 
@@ -679,11 +695,10 @@ bogus undo:
 
         data = b''
 
-        while ((data.find(b"\n0000") == -1) and
-               (data.find(b"\n8003") == -1) and
-               (data.find(b"\n0013") == -1) and
-               (data.find(b"\n9001") == -1) and
-               (data.find(b"\n8001") == -1)):
+        while True:
+            if any([data.find(f"\n{code:04}".encode("utf-8")) != -1
+                for code in self.error_fields + self.success_fields]):
+                break
             this_read = sock.recv(1024)
             if not this_read:
                 self.log.debug(data)
