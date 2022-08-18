@@ -27,7 +27,7 @@ class PyBird(object):
 
         self.clean_input_re = re.compile(r'\W+')
         self.field_number_re = re.compile(r'^(\d+)[ -]')
-        self.routes_field_re = re.compile(r'(\d+) imported, (\d+) exported')
+        self.routes_field_re = re.compile(r'(\d+) imported,.* (\d+) exported')
         self.log = logging.getLogger(__name__)
 
     def get_config(self):
@@ -508,6 +508,7 @@ bogus undo:
             'neighbor id': 'router_id',
             'neighbor address': 'address',
             'neighbor as': 'asn',
+            'source address': 'source',
             }
         lineiterator = iter(peer_detail_raw)
 
