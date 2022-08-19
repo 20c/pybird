@@ -36,7 +36,7 @@ or the general status of BIRD (router ID, last config change)
     >>> rejected = pybird.get_peer_prefixes_rejected('KPN')
     >>> rejected[0]['as_path']
     '23456 65592'
-    
+
     >>> status = pybird.get_status()
     >>> status['last_reconfiguration_time']
     datetime.datetime(2012, 1, 3, 12, 46, 40)

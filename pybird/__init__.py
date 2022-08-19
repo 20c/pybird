@@ -1,21 +1,25 @@
-from builtins import str
-from builtins import next
-from builtins import object
-
 import logging
 import re
 import socket
 from datetime import datetime, timedelta
-from subprocess import Popen, PIPE
+from subprocess import PIPE, Popen
 
 
-class PyBird(object):
+class PyBird:
     # BIRD reply codes: https://github.com/CZ-NIC/bird/blob/6c11dbcf28faa145cfb7310310a2a261fd4dd1f2/doc/reply_codes
     ignored_field_numbers = (0, 1, 13, 1008, 2002, 9001)
     error_fields = (13, 19, 8001, 8002, 8003, 9000, 9001, 9002)
     success_fields = (0, 3, 4, 18, 20)
 
-    def __init__(self, socket_file, hostname=None, user=None, password=None, config_file=None, bird_cmd=None):
+    def __init__(
+        self,
+        socket_file,
+        hostname=None,
+        user=None,
+        password=None,
+        config_file=None,
+        bird_cmd=None,
+    ):
         """Basic pybird setup.
         Required argument: socket_file: full path to the BIRD control socket."""
         self.socket_file = socket_file
@@ -24,13 +28,13 @@ class PyBird(object):
         self.password = password
         self.config_file = config_file
         if not bird_cmd:
-            self.bird_cmd = 'birdc'
+            self.bird_cmd = "birdc"
         else:
             self.bird_cmd = bird_cmd
 
-        self.clean_input_re = re.compile(r'\W+')
-        self.field_number_re = re.compile(r'^(\d+)[ -]')
-        self.routes_field_re = re.compile(r'(\d+) imported,.* (\d+) exported')
+        self.clean_input_re = re.compile(r"\W+")
+        self.field_number_re = re.compile(r"^(\d+)[ -]")
+        self.routes_field_re = re.compile(r"(\d+) imported,.* (\d+) exported")
         self.log = logging.getLogger(__name__)
 
     def get_config(self):
@@ -80,7 +84,7 @@ class PyBird(object):
                 continue
 
             if field_number == 1000:
-                data['version'] = line.split(' ')[1]
+                data["version"] = line.split(" ")[1]
 
             elif field_number == 1011:
                 # Parse the status section, which looks like:
@@ -88,40 +92,42 @@ class PyBird(object):
                 # Current server time is 10-01-2012 10:24:37
                 # Last reboot on 03-01-2012 12:46:40
                 # Last reconfiguration on 03-01-2012 12:46:40
-                data['router_id'] = self._parse_router_status_line(line)
+                data["router_id"] = self._parse_router_status_line(line)
 
                 line = next(line_iterator)  # skip current server time
                 self.log.debug("PyBird: parse status: %s", line)
 
                 line = next(line_iterator)
                 self.log.debug("PyBird: parse status: %s", line)
-                data['last_reboot'] = self._parse_router_status_line(
-                    line, parse_date=True)
+                data["last_reboot"] = self._parse_router_status_line(
+                    line, parse_date=True
+                )
 
                 line = next(line_iterator)
                 self.log.debug("PyBird: parse status: %s", line)
-                data['last_reconfiguration'] = self._parse_router_status_line(
-                    line, parse_date=True)
+                data["last_reconfiguration"] = self._parse_router_status_line(
+                    line, parse_date=True
+                )
 
         return data
 
     def _parse_configure(self, data):
         """
-        returns error on error, None on success
-0001 BIRD 1.4.5 ready.
-0002-Reading configuration from /home/grizz/c/20c/tstbird/dev3.conf
-8002 /home/grizz/c/20c/tstbird/dev3.conf, line 3: syntax error
+                returns error on error, None on success
+        0001 BIRD 1.4.5 ready.
+        0002-Reading configuration from /home/grizz/c/20c/tstbird/dev3.conf
+        8002 /home/grizz/c/20c/tstbird/dev3.conf, line 3: syntax error
 
-0001 BIRD 1.4.5 ready.
-0002-Reading configuration from /home/grizz/c/20c/tstbird/dev3.conf
-0020 Configuration OK
+        0001 BIRD 1.4.5 ready.
+        0002-Reading configuration from /home/grizz/c/20c/tstbird/dev3.conf
+        0020 Configuration OK
 
-0004 Reconfiguration in progress
-0018 Reconfiguration confirmed
-0003 Reconfigured
+        0004 Reconfiguration in progress
+        0018 Reconfiguration confirmed
+        0003 Reconfigured
 
-bogus undo:
-0019 Nothing to do
+        bogus undo:
+        0019 Nothing to do
 
         """
 
@@ -131,7 +137,7 @@ bogus undo:
 
             if fieldno == 2:
                 if not self.config_file:
-                    self.config_file = line.split(' ')[3]
+                    self.config_file = line.split(" ")[3]
 
             elif fieldno in self.error_fields:
                 return line
@@ -144,14 +150,14 @@ bogus undo:
         """Parse a line like:
             Current server time is 10-01-2012 10:24:37.123
         optionally (if parse_date=True), parse it into a datetime"""
-        data = line.strip().split(' ', 3)[-1]
+        data = line.strip().split(" ", 3)[-1]
         if parse_date:
             data = data.split(".")[0]
             try:
-                return datetime.strptime(data, '%Y-%m-%d %H:%M:%S')
+                return datetime.strptime(data, "%Y-%m-%d %H:%M:%S")
             # old versions of bird used DD-MM-YYYY
             except ValueError:
-                return datetime.strptime(data, '%d-%m-%Y %H:%M:%S')
+                return datetime.strptime(data, "%d-%m-%Y %H:%M:%S")
         else:
             return data
 
@@ -171,9 +177,9 @@ bogus undo:
     def get_routes(self, prefix=None, peer=None):
         query = "show route all"
         if prefix:
-            query += " for {}".format(prefix)
+            query += f" for {prefix}"
         if peer:
-            query += " protocol {}".format(peer)
+            query += f" protocol {peer}"
         data = self._send_query(query)
         return self._parse_route_data(data)
 
@@ -182,8 +188,9 @@ bogus undo:
         """Get prefixes announced by a specific peer, without applying
         filters - i.e. this includes routes which were not accepted"""
         clean_peer_name = self._clean_input(peer_name)
-        query = "show route table T_%s all protocol %s" % (
-            clean_peer_name, clean_peer_name)
+        query = "show route table T_{} all protocol {}".format(
+            clean_peer_name, clean_peer_name
+        )
         data = self._send_query(query)
         return self._parse_route_data(data)
 
@@ -193,8 +200,9 @@ bogus undo:
     def get_peer_prefixes_exported(self, peer_name):
         """Get prefixes exported TO a specific peer"""
         clean_peer_name = self._clean_input(peer_name)
-        query = "show route all table T_%s export %s" % (
-            clean_peer_name, clean_peer_name)
+        query = "show route all table T_{} export {}".format(
+            clean_peer_name, clean_peer_name
+        )
         data = self._send_query(query)
         if not self.socket_file:
             return data
@@ -211,13 +219,15 @@ bogus undo:
         announced = self.get_peer_prefixes_announced(peer_name)
         accepted = self.get_peer_prefixes_accepted(peer_name)
 
-        announced_prefixes = [i['prefix'] for i in announced]
-        accepted_prefixes = [i['prefix'] for i in accepted]
+        announced_prefixes = [i["prefix"] for i in announced]
+        accepted_prefixes = [i["prefix"] for i in accepted]
 
         rejected_prefixes = [
-            item for item in announced_prefixes if item not in accepted_prefixes]
-        rejected_routes = [item for item in announced if item[
-            'prefix'] in rejected_prefixes]
+            item for item in announced_prefixes if item not in accepted_prefixes
+        ]
+        rejected_routes = [
+            item for item in announced if item["prefix"] in rejected_prefixes
+        ]
         return rejected_routes
 
     def get_prefix_info(self, prefix, peer_name=None):
@@ -232,16 +242,16 @@ bogus undo:
 
     def _parse_route_data(self, data):
         """Parse a blob like:
-            0001 BIRD 1.3.3 ready.
-            1007-2a02:898::/32      via 2001:7f8:1::a500:8954:1 on eth1 [PS2 12:46] * (100) [AS8283i]
-            1008-   Type: BGP unicast univ
-            1012-   BGP.origin: IGP
-                BGP.as_path: 8954 8283
-                BGP.next_hop: 2001:7f8:1::a500:8954:1 fe80::21f:caff:fe16:e02
-                BGP.local_pref: 100
-                BGP.community: (8954,620)
-            [....]
-            0000
+        0001 BIRD 1.3.3 ready.
+        1007-2a02:898::/32      via 2001:7f8:1::a500:8954:1 on eth1 [PS2 12:46] * (100) [AS8283i]
+        1008-   Type: BGP unicast univ
+        1012-   BGP.origin: IGP
+            BGP.as_path: 8954 8283
+            BGP.next_hop: 2001:7f8:1::a500:8954:1 fe80::21f:caff:fe16:e02
+            BGP.local_pref: 100
+            BGP.community: (8954,620)
+        [....]
+        0000
         """
         lines = data.splitlines()
         routes = []
@@ -277,7 +287,7 @@ bogus undo:
 
                 # A route detail spans multiple lines, read them all
                 route_detail_raw = []
-                while 'BGP.' in line:
+                while "BGP." in line:
                     route_detail_raw.append(line)
                     line_counter += 1
                     line = lines[line_counter]
@@ -304,33 +314,33 @@ bogus undo:
             r"(?P<prefix>[a-f0-9\.:\/]+)?\s+"
             r"(?:via\s+(?P<peer>[^\s]+) on (?P<interface>[^\s]+)|(?:\w+)?)?\s*"
             r"\[(?P<source>[^\s]+) (?P<time>[^\]\s]+)(?: from (?P<peer2>[^\s]+))?\]"
-            )
+        )
 
     def _parse_route_summary(self, line):
         """Parse a line like:
-            2a02:898::/32      via 2001:7f8:1::a500:8954:1 on eth1 [PS2 12:46] * (100) [AS8283i]
+        2a02:898::/32      via 2001:7f8:1::a500:8954:1 on eth1 [PS2 12:46] * (100) [AS8283i]
         """
         match = self._re_route_summary().match(line)
         if not match:
-            raise ValueError("couldn't parse line '{}'".format(line))
+            raise ValueError(f"couldn't parse line '{line}'")
         # Note that split acts on sections of whitespace - not just single
         # chars
         route = match.groupdict()
 
         # python regex doesn't allow group name reuse
-        if not route['peer']:
-            route['peer'] = route.pop('peer2')
+        if not route["peer"]:
+            route["peer"] = route.pop("peer2")
         else:
-            del route['peer2']
+            del route["peer2"]
         return route
 
     def _parse_route_detail(self, lines):
         """Parse a blob like:
-            1012-   BGP.origin: IGP
-                BGP.as_path: 8954 8283
-                BGP.next_hop: 2001:7f8:1::a500:8954:1 fe80::21f:caff:fe16:e02
-                BGP.local_pref: 100
-                BGP.community: (8954,620)
+        1012-   BGP.origin: IGP
+            BGP.as_path: 8954 8283
+            BGP.next_hop: 2001:7f8:1::a500:8954:1 fe80::21f:caff:fe16:e02
+            BGP.local_pref: 100
+            BGP.community: (8954,620)
         """
         attributes = {}
 
@@ -347,10 +357,9 @@ bogus undo:
                 key = parts[0].strip(":")
                 value = True
 
-            if key == 'community':
+            if key == "community":
                 # convert (8954,220) (8954,620) to 8954:220 8954:620
-                value = value.replace(",", ":").replace(
-                    "(", "").replace(")", "")
+                value = value.replace(",", ":").replace("(", "").replace(")", "")
 
             attributes[key] = value
 
@@ -371,7 +380,7 @@ bogus undo:
         if peer_name:
             query = 'show protocols all "%s"' % self._clean_input(peer_name)
         else:
-            query = 'show protocols all'
+            query = "show protocols all"
 
         data = self._send_query(query)
         if not self.socket_file:
@@ -386,7 +395,8 @@ bogus undo:
             return []
         elif len(peers) > 1:
             raise ValueError(
-                "Searched for a specific peer, but got multiple returned from BIRD?")
+                "Searched for a specific peer, but got multiple returned from BIRD?"
+            )
         else:
             return peers[0]
 
@@ -406,7 +416,7 @@ bogus undo:
 
             if field_number == 1002:
                 peer_summary = self._parse_peer_summary(line)
-                if peer_summary['protocol'] != 'BGP':
+                if peer_summary["protocol"] != "BGP":
                     peer_summary = None
                     continue
 
@@ -450,11 +460,13 @@ bogus undo:
         elements = line.split()
 
         try:
-            if ':' in elements[5]:  # newer versions include a timestamp before the state
+            if (
+                ":" in elements[5]
+            ):  # newer versions include a timestamp before the state
                 state = elements[6]
             else:
                 state = elements[5]
-            up = (state.lower() == "established")
+            up = state.lower() == "established"
         except IndexError:
             state = None
             up = None
@@ -463,11 +475,11 @@ bogus undo:
         last_change = self._calculate_datetime(raw_datetime)
 
         return {
-            'name': elements[0],
-            'protocol': elements[1],
-            'last_change': last_change,
-            'state': state,
-            'up': up,
+            "name": elements[0],
+            "protocol": elements[1],
+            "last_change": last_change,
+            "state": state,
+            "up": up,
         }
 
     def _parse_peer_detail(self, peer_detail_raw):
@@ -509,15 +521,15 @@ bogus undo:
             "import updates",
             "import withdraws",
             "export updates",
-            "export withdraws"
-            ]
+            "export withdraws",
+        ]
         field_map = {
-            'description': 'description',
-            'neighbor id': 'router_id',
-            'neighbor address': 'address',
-            'neighbor as': 'asn',
-            'source address': 'source',
-            }
+            "description": "description",
+            "neighbor id": "router_id",
+            "neighbor address": "address",
+            "neighbor as": "asn",
+            "source address": "source",
+        }
         lineiterator = iter(peer_detail_raw)
 
         for line in lineiterator:
@@ -531,22 +543,17 @@ bogus undo:
 
             if field.lower() == "routes":
                 routes = self.routes_field_re.findall(value)[0]
-                result['routes_imported'] = int(routes[0])
-                result['routes_exported'] = int(routes[1])
+                result["routes_imported"] = int(routes[0])
+                result["routes_exported"] = int(routes[1])
 
             if field.lower() in route_change_fields:
                 (received, rejected, filtered, ignored, accepted) = value.split()
-                key_name_base = field.lower().replace(' ', '_')
-                self._parse_route_stats(
-                    result, key_name_base + '_received', received)
-                self._parse_route_stats(
-                    result, key_name_base + '_rejected', rejected)
-                self._parse_route_stats(
-                    result, key_name_base + '_filtered', filtered)
-                self._parse_route_stats(
-                    result, key_name_base + '_ignored', ignored)
-                self._parse_route_stats(
-                    result, key_name_base + '_accepted', accepted)
+                key_name_base = field.lower().replace(" ", "_")
+                self._parse_route_stats(result, key_name_base + "_received", received)
+                self._parse_route_stats(result, key_name_base + "_rejected", rejected)
+                self._parse_route_stats(result, key_name_base + "_filtered", filtered)
+                self._parse_route_stats(result, key_name_base + "_ignored", ignored)
+                self._parse_route_stats(result, key_name_base + "_accepted", accepted)
 
             if field.lower() in field_map.keys():
                 result[field_map[field.lower()]] = value
@@ -570,7 +577,7 @@ bogus undo:
 
         if len(matches):
             field_number = int(matches[0])
-            cleaned_line = self.field_number_re.sub('', line).strip('-')
+            cleaned_line = self.field_number_re.sub("", line).strip("-")
             return (field_number, cleaned_line)
         else:
             return (None, line)
@@ -583,7 +590,19 @@ bogus undo:
 
         # Case: YYYY-MM-DD HH:MM:SS
         try:
-            return datetime(*map(int, (value[:4], value[5:7], value[8:10], value[11:13], value[14:16], value[17:19])))
+            return datetime(
+                *map(
+                    int,
+                    (
+                        value[:4],
+                        value[5:7],
+                        value[8:10],
+                        value[11:13],
+                        value[14:16],
+                        value[17:19],
+                    ),
+                )
+            )
         except ValueError:
             pass
 
@@ -595,7 +614,7 @@ bogus undo:
 
         # Case: HH:mm:ss.nnn or HH:mm or HH:mm:ss timestamp
         try:
-            value = value.split('.')[0]     # strip any "".nnn" suffix
+            value = value.split(".")[0]  # strip any "".nnn" suffix
             try:
                 parsed_value = datetime.strptime(value, "%H:%M")
 
@@ -603,9 +622,12 @@ bogus undo:
                 parsed_value = datetime.strptime(value, "%H:%M:%S")
 
             result_date = datetime(
-                now.year, now.month, now.day, parsed_value.hour, parsed_value.minute)
+                now.year, now.month, now.day, parsed_value.hour, parsed_value.minute
+            )
 
-            if now.hour < parsed_value.hour or (now.hour == parsed_value.hour and now.minute < parsed_value.minute):
+            if now.hour < parsed_value.hour or (
+                now.hour == parsed_value.hour and now.minute < parsed_value.minute
+            ):
                 result_date = result_date - timedelta(days=1)
 
             return result_date
@@ -615,7 +637,7 @@ bogus undo:
 
         # Case: "Jun13" timestamp
         try:
-            parsed = datetime.strptime(value, '%b%d')
+            parsed = datetime.strptime(value, "%b%d")
 
             # if now is past the month, it's this year, else last year
             if now.month == parsed.month:
@@ -644,8 +666,8 @@ bogus undo:
             raise ValueError("Can not parse datetime: [%s]" % value)
 
     def _remote_cmd(self, cmd, inp=None):
-        to = '{}@{}'.format(self.user, self.hostname)
-        proc = Popen(['ssh', to, cmd], stdin=PIPE, stdout=PIPE)
+        to = f"{self.user}@{self.hostname}"
+        proc = Popen(["ssh", to, cmd], stdin=PIPE, stdout=PIPE)
         res = proc.communicate(input=inp)[0]
         return res
 
@@ -662,7 +684,7 @@ bogus undo:
             self._remote_cmd(cmd, inp=data)
             return
 
-        with open(fname, 'w') as fobj:
+        with open(fname, "w") as fobj:
             fobj.write(data)
             return
 
@@ -676,7 +698,7 @@ bogus undo:
         """
         mimic a direct socket connect over ssh
         """
-        cmd = "{} -v -s {} '{}'".format(self.bird_cmd, self.socket_file, query)
+        cmd = f"{self.bird_cmd} -v -s {self.socket_file} '{query}'"
         res = self._remote_cmd(cmd)
         res += "0000\n"
         return res
@@ -686,18 +708,22 @@ bogus undo:
         the response.
         """
         if not isinstance(query, bytes):
-            query = query.encode('utf-8')
-        if not query.endswith(b'\n'):
-            query += b'\n'
+            query = query.encode("utf-8")
+        if not query.endswith(b"\n"):
+            query += b"\n"
         sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         sock.connect(self.socket_file)
         sock.send(query)
 
-        data = b''
+        data = b""
 
         while True:
-            if any([data.find(f"\n{code:04}".encode("utf-8")) != -1
-                for code in self.error_fields + self.success_fields]):
+            if any(
+                [
+                    data.find(f"\n{code:04}".encode()) != -1
+                    for code in self.error_fields + self.success_fields
+                ]
+            ):
                 break
             this_read = sock.recv(1024)
             if not this_read:
@@ -706,9 +732,9 @@ bogus undo:
             data += this_read
 
         sock.close()
-        return data.decode('utf-8')
+        return data.decode("utf-8")
 
     def _clean_input(self, inp):
         """Clean the input string of anything not plain alphanumeric chars,
         return the cleaned string."""
-        return self.clean_input_re.sub('', inp).strip()
+        return self.clean_input_re.sub("", inp).strip()

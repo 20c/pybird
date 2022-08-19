@@ -1,27 +1,25 @@
-
 import collections
-from datetime import datetime
 import json
 import os
-
+from datetime import datetime
 
 this_dir = os.path.dirname(__file__)
-data_dir = os.path.join(this_dir, 'data')
+data_dir = os.path.join(this_dir, "data")
 
 
 def json_hook(data):
     date_keys = (
-        'last_change',
-        'last_reboot',
-        'last_reconfiguration',
-        )
+        "last_change",
+        "last_reboot",
+        "last_reconfiguration",
+    )
     for key in date_keys:
         if key in data:
             data[key] = datetime.strptime(data[key], "%Y-%m-%dT%H:%M:%S")
     return data
 
 
-class FileTestData(object):
+class FileTestData:
     def __init__(self, inp=None, exp=None):
         self.input = inp
         self.expected = exp
@@ -48,9 +46,9 @@ def get_test_files(name):
     gets a list of files in directory specified by name
     underscore convered to /
     """
-    dirname = os.path.join(this_dir, *name.split('_'))
+    dirname = os.path.join(this_dir, *name.split("_"))
     if not os.path.isdir(dirname):
-        raise ValueError("data directory '{}' does not exist".format(dirname))
+        raise ValueError(f"data directory '{dirname}' does not exist")
     path = dirname + "/{}"
     return map(path.format, sorted(os.listdir(dirname)))
 
@@ -60,7 +58,7 @@ def get_test_data(name):
 
     for each in get_test_files(name):
         fname = os.path.basename(each)
-        if fname.startswith('.'):
+        if fname.startswith("."):
             continue
 
         test_name, ext = os.path.splitext(fname)
@@ -68,7 +66,7 @@ def get_test_data(name):
 
         # could setattr
         attr = ext[1:]
-        if ext == '.expected':
+        if ext == ".expected":
             with open(each) as fobj:
                 data[test_name].expected = json.load(fobj, object_hook=json_hook)
         else:
