@@ -1,10 +1,10 @@
 
 # pybird
 
-[![PyPI](https://img.shields.io/pypi/v/pybird.svg?maxAge=3600)](https://pypi.python.org/pypi/pybird)
-[![Travis CI](https://img.shields.io/travis/20c/pybird.svg?maxAge=3600)](https://travis-ci.org/20c/pybird)
-[![Code Health](https://landscape.io/github/20c/pybird/master/landscape.svg?style=flat)](https://landscape.io/github/20c/pybird/master)
-[![Codecov](https://img.shields.io/codecov/c/github/20c/pybird/master.svg?maxAge=3600)](https://codecov.io/github/20c/pybird)
+[![PyPI](https://img.shields.io/pypi/v/pybird.svg?maxAge=60)](https://pypi.python.org/pypi/pybird)
+[![PyPI](https://img.shields.io/pypi/pyversions/pybird.svg?maxAge=600)](https://pypi.python.org/pypi/pybird)
+[![Tests](https://github.com/20c/pybird/workflows/tests/badge.svg)](https://github.com/20c/confu)
+[![Codecov](https://img.shields.io/codecov/c/github/20c/pybird/main.svg?maxAge=3600)](https://codecov.io/github/20c/pybird)
 [![Requires.io](https://img.shields.io/requires/github/20c/pybird.svg?maxAge=3600)](https://requires.io/github/20c/pybird/requirements)
 
 BIRD interface handler for Python
