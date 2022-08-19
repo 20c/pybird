@@ -1,4 +1,0 @@
-include LICENSE
-recursive-include facsimile *.txt
-recursive-include pybird *.py
-include facsimile/VERSION
