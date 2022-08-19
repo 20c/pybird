@@ -2,6 +2,10 @@
 
 
 ## Unreleased
+### Added
+- Python 3.7, 3.8, 3.9, 3.10 support (#21)
+### Removed
+- Support for Python versions older than 3.7 (#21)
 
 
 ## 1.1.2

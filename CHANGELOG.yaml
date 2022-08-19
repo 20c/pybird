@@ -21,9 +21,11 @@
   fixed:
   - all tests are fixed and run again (on MacOS and Debian 11)
 Unreleased:
-  added: []
+  added:
+  - Python 3.7, 3.8, 3.9, 3.10 support (#21)
   changed: []
   deprecated: []
   fixed: []
-  removed: []
+  removed:
+  - Support for Python versions older than 3.7 (#21)
   security: []
