@@ -1,0 +1,13 @@
+site_name: pybird
+site_url: https://github.com/20c/pybird
+
+theme: readthedocs
+
+nav:
+  - Home: index.md
+  - Testing: testing.md
+
+markdown_extensions:
+  - markdown_include.include
+  - admonition
+  - pymdgen
