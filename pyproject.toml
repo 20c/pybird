@@ -6,6 +6,14 @@ readme = "README.md"
 repository = "https://github.com/20c/pybird"
 authors = ["20C <code@20c.com>", "Sasha Romijn <github@mxsasha.eu>"]
 license = "Apache-2.0"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+]
 
 packages = [{ include = "pybird" }]
 
