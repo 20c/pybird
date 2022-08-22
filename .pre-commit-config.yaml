@@ -9,6 +9,7 @@ repos:
     hooks:
       - id: check-yaml
       - id: trailing-whitespace
+        exclude: 'tests/test_socket.py'
   - repo: local
     hooks:
       - id: system

@@ -211,7 +211,7 @@ class MockBirdTestCase(MockBirdTestBase):
  P_PS1    Pipe     master   up     Jun13       => T_PS1
  PS1      BGP      T_PS1    start  Jun13       Passive
 0000
-"""
+"""  # noqa
         )
 
     def test_show_protocols_all_mocked_correctly(self):
@@ -221,7 +221,7 @@ class MockBirdTestCase(MockBirdTestBase):
             == """
 0001 BIRD 1.3.0 ready.
 2002-name     proto    table    state  since       info
-1002-device1  Device   master   up     2010-06-29
+1002-device1  Device   master   up     2010-06-29  
 1006-  Preference:     240
   Input filter:   ACCEPT
   Output filter:  REJECT
@@ -243,7 +243,7 @@ class MockBirdTestCase(MockBirdTestBase):
     Export updates:              0          0          0          0          0
     Export withdraws:            0          0        ---          0          0
 
-1002-PS1      BGP      T_PS1    start  2010-06-29  Passive
+1002-PS1      BGP      T_PS1    start  2010-06-29  Passive       
 1006-  Description:    Peering AS8954 - InTouch
   Preference:     100
   Input filter:   ACCEPT
@@ -267,7 +267,7 @@ class MockBirdTestCase(MockBirdTestBase):
     Export updates:              0          0          0          0          0
     Export withdraws:            0          0        ---          0          0
 
-1002-PS2      BGP      T_PS2    start  2010-06-29  Established
+1002-PS2      BGP      T_PS2    start  2010-06-29  Established       
 1006-  Description:    Peering AS8954 - InTouch
   Preference:     100
   Input filter:   ACCEPT
@@ -288,9 +288,9 @@ class MockBirdTestCase(MockBirdTestBase):
       Route limit:      9/1000
       Hold timer:       112/180
       Keepalive timer:  16/60
-
-0000
-"""
+    
+0000 
+"""  # noqa
         )
 
 
