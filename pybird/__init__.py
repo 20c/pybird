@@ -89,12 +89,17 @@ class PyBird:
             elif field_number == 1011:
                 # Parse the status section, which looks like:
                 # 1011-Router ID is 195.69.146.34
+                # Hostname is bird2-router
                 # Current server time is 10-01-2012 10:24:37
                 # Last reboot on 03-01-2012 12:46:40
                 # Last reconfiguration on 03-01-2012 12:46:40
                 data["router_id"] = self._parse_router_status_line(line)
 
-                line = next(line_iterator)  # skip current server time
+                line = next(line_iterator)
+                if line.lstrip().startswith("Hostname is"):
+                    data["hostname"] = line.split(" is ")[1]
+                    line = next(line_iterator)
+                # skip current server time
                 self.log.debug("PyBird: parse status: %s", line)
 
                 line = next(line_iterator)
