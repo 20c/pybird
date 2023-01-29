@@ -1,20 +1,19 @@
-
-from datetime import datetime, timedelta, date
 import os
-import pytest
 import socket
+import traceback
+import unittest
+from datetime import datetime
 from tempfile import mkdtemp
 from threading import Thread
 from time import sleep
-import traceback
-import unittest
+
+import filedata
+import pytest
 
 from pybird import PyBird
-import filedata
-
 
 this_dir = os.path.dirname(__file__)
-data_dir = os.path.join(this_dir, 'data')
+data_dir = os.path.join(this_dir, "data")
 
 
 class MockBirdTestBase(unittest.TestCase):
@@ -32,7 +31,7 @@ class MockBirdTestBase(unittest.TestCase):
         sleep(0.2)
 
     def tearDown(self):
-        self._send_query('terminate mockserver')
+        self._send_query("terminate mockserver")
 
     def _send_query(self, query):
 
@@ -55,10 +54,10 @@ class MockBirdTestBase(unittest.TestCase):
 def get_test_files(cmd):
     if not isinstance(cmd, str):
         cmd = cmd.decode("utf-8")
-    dirname = cmd.strip().replace(' ', '_')
-    dirname = os.path.join(data_dir, 'commands', dirname)
+    dirname = cmd.strip().replace(" ", "_")
+    dirname = os.path.join(data_dir, "commands", dirname)
     if not os.path.isdir(dirname):
-        raise ValueError("response directory '{}' does not exist".format(dirname) )
+        raise ValueError(f"response directory '{dirname}' does not exist")
     path = dirname + "/{}"
     return map(path.format, os.listdir(dirname))
 
@@ -67,25 +66,26 @@ def get_expected(cmd):
     for each in get_test_files(cmd):
         fname, ext = os.path.splitext(each)
         # load based on input files so they always match up
-        if ext == '.input':
-            path = fname + '.expected'
+        if ext == ".input":
+            path = fname + ".expected"
             if os.path.exists(path):
                 with open(path) as fobj:
                     yield filedata.load(fobj)
             else:
-                yield ''
+                yield ""
 
 
 def get_responses(cmd):
     for each in get_test_files(cmd):
         fname, ext = os.path.splitext(each)
-        if ext == '.input':
+        if ext == ".input":
             with open(each) as fobj:
                 yield fobj.read()
 
 
 class Expected(PyBird):
-    """ overrides bird instance to return generator of expected responses """
+    """overrides bird instance to return generator of expected responses"""
+
     def _send_query(self, cmd):
         return get_expected(cmd)
 
@@ -94,14 +94,14 @@ class PyBirdTestCase(MockBirdTestBase):
     """Test the PyBird library"""
 
     def setUp(self):
-        super(PyBirdTestCase, self).setUp()
+        super().setUp()
         self.pybird = PyBird(socket_file=self.socket_file)
         self.expected = Expected(None)
 
     def run_method_test(self, name, *args):
         func = getattr(self.pybird, name)
         if not func:
-            raise ValueError("Method {} not found on pybird".format(name))
+            raise ValueError(f"Method {name} not found on pybird")
 
         for expected in getattr(self.expected, name)(*args):
             result = func(*args)
@@ -111,7 +111,7 @@ class PyBirdTestCase(MockBirdTestBase):
         """Test that we can get a list of all peers and their status.
         Testing of individual fields here is limited, that's mostly done
         in test_specific_peer_status()."""
-        self.run_method_test('get_peer_status')
+        self.run_method_test("get_peer_status")
 
     def test_nonexistant_peer_status(self):
         """Test that we get [] if the peer did not exist."""
@@ -122,21 +122,21 @@ class PyBirdTestCase(MockBirdTestBase):
         """Test the retrieval of specific peer info, and check all the fields
         for correctness."""
         ps2_status = self.pybird.get_peer_status("PS2")
-        assert ps2_status['up']
-        assert ps2_status['last_change'] == datetime(2010, 6, 29)
-        assert ps2_status['state'] == "Established"
-        assert ps2_status['routes_imported'] == 24
-        assert ps2_status['routes_exported'] == 23
-        assert ps2_status['import_updates_received'] == 12
-        assert ps2_status['import_withdraws_accepted'] == 3
-        assert ps2_status['export_updates_rejected'] == 12
-        assert ps2_status['router_id'] == "85.184.4.5"
+        assert ps2_status["up"]
+        assert ps2_status["last_change"] == datetime(2010, 6, 29)
+        assert ps2_status["state"] == "Established"
+        assert ps2_status["routes_imported"] == 24
+        assert ps2_status["routes_exported"] == 23
+        assert ps2_status["import_updates_received"] == 12
+        assert ps2_status["import_withdraws_accepted"] == 3
+        assert ps2_status["export_updates_rejected"] == 12
+        assert ps2_status["router_id"] == "85.184.4.5"
 
         ps1_status = self.pybird.get_peer_status("PS1")
-        self.assertFalse(ps1_status['up'])
+        self.assertFalse(ps1_status["up"])
 
-        assert ps1_status['last_change'] == datetime(2010, 6, 29)
-        assert ps1_status['state'] == "Passive"
+        assert ps1_status["last_change"] == datetime(2010, 6, 29)
+        assert ps1_status["state"] == "Passive"
 
     def test_specific_peer_prefixes_announced(self):
         """Test the retrieval of prefixes announced by a peer."""
@@ -147,15 +147,15 @@ class PyBirdTestCase(MockBirdTestBase):
         """Test the retrieval of prefixes announced by a peer."""
         accepted_prefixes = self.pybird.get_peer_prefixes_accepted("PS1")
         assert len(accepted_prefixes) == 1
-        assert accepted_prefixes[0]['origin'] == 'IGP'
-        assert accepted_prefixes[0]['as_path'] == '8954 8283'
-        assert accepted_prefixes[0]['community'] == '8954:220 8954:620'
+        assert accepted_prefixes[0]["origin"] == "IGP"
+        assert accepted_prefixes[0]["as_path"] == "8954 8283"
+        assert accepted_prefixes[0]["community"] == "8954:220 8954:620"
 
     def test_specific_peer_prefixes_rejected(self):
         """Test the retrieval of prefixes rejected from a peer."""
         rejected_prefixes = self.pybird.get_peer_prefixes_rejected("PS1")
         assert len(rejected_prefixes) == 1
-        assert rejected_prefixes[0]['as_path'] == '8954 20144'
+        assert rejected_prefixes[0]["as_path"] == "8954 20144"
 
     def test_specific_peer_prefixes_accepted_nonexistant_peer(self):
         """Test the handling of asking for accepted prefixes for a non-existing peer"""
@@ -166,7 +166,7 @@ class PyBirdTestCase(MockBirdTestBase):
         """Test that improper characters are removed from the peer_name field
         before it is sent to BIRD."""
         ps1_status = self.pybird.get_peer_status("PS1{\"'}")
-        assert not ps1_status['up']
+        assert not ps1_status["up"]
 
     def test_handles_no_output(self):
         """Test that the code detects that it reached the end of the output
@@ -183,25 +183,27 @@ class PyBirdTestCase(MockBirdTestBase):
         assert not self.mock_bird.unused_tests()
 
     def test_get_peer_prefixes_exported(self):
-        for expected in self.expected.get_peer_prefixes_exported('peer'):
-            status = self.pybird.get_peer_prefixes_exported('peer')
+        for expected in self.expected.get_peer_prefixes_exported("peer"):
+            status = self.pybird.get_peer_prefixes_exported("peer")
             print(filedata.dumps(status))
             assert expected == status
 
     def test_get_prefix_info(self):
-        for expected in self.expected.get_prefix_info('8.8.8.8', 'peer'):
-            status = self.pybird.get_prefix_info('8.8.8.8', 'peer')
+        for expected in self.expected.get_prefix_info("8.8.8.8", "peer"):
+            status = self.pybird.get_prefix_info("8.8.8.8", "peer")
             print(filedata.dumps(status))
             assert expected == status
 
 
 class MockBirdTestCase(MockBirdTestBase):
     """Run a basic test to see whether our mocked BIRD control socket
-     actually works. Can save a lot of work in debugging."""
+    actually works. Can save a lot of work in debugging."""
 
     def test_show_protocols_mocked_correctly(self):
         data = self._send_query("show protocols\n")
-        assert data == """0001 BIRD 1.3.0 ready.
+        assert (
+            data
+            == """0001 BIRD 1.3.0 ready.
 2002-name     proto    table    state  since       info
 1002-device1  Device   master   up     14:07
  P_PS2    Pipe     master   up     14:07       => T_PS2
@@ -209,11 +211,14 @@ class MockBirdTestCase(MockBirdTestBase):
  P_PS1    Pipe     master   up     Jun13       => T_PS1
  PS1      BGP      T_PS1    start  Jun13       Passive
 0000
-"""
+"""  # noqa
+        )
 
     def test_show_protocols_all_mocked_correctly(self):
         data = self._send_query("show protocols all\n")
-        assert data == """
+        assert (
+            data
+            == """
 0001 BIRD 1.3.0 ready.
 2002-name     proto    table    state  since       info
 1002-device1  Device   master   up     2010-06-29  
@@ -285,7 +290,9 @@ class MockBirdTestCase(MockBirdTestBase):
       Keepalive timer:  16/60
     
 0000 
-"""
+"""  # noqa
+        )
+
 
 class MockBird(Thread):
     """
@@ -333,7 +340,7 @@ class MockBird(Thread):
                 conn, addr = self.socket.accept()
                 cmd = conn.recv(1024)
 
-                if not cmd or cmd == 'terminate mockserver':
+                if not cmd or cmd == b"terminate mockserver\n":
                     break
 
                 response = self.get_response(cmd)
@@ -342,6 +349,6 @@ class MockBird(Thread):
                 conn.send(response)
 
             except Exception as e:
-                conn.send("{}: {}".format(str(e), traceback.format_exc()).encode("utf-8"))
+                conn.send(f"{str(e)}: {traceback.format_exc()}".encode())
 
             conn.close()

@@ -1,0 +1,16 @@
+name: ci
+on:
+  push:
+    branches:
+      - main
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v2
+      - name: Install virtualenv from poetry
+        uses: 20c/workflows/poetry@v1
+      - name: deploy mkdocs gh-pages site
+        run: |
+          poetry run mkdocs gh-deploy --force
