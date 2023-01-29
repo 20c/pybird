@@ -340,7 +340,7 @@ class MockBird(Thread):
                 conn, addr = self.socket.accept()
                 cmd = conn.recv(1024)
 
-                if not cmd or cmd == "terminate mockserver":
+                if not cmd or cmd == b"terminate mockserver\n":
                     break
 
                 response = self.get_response(cmd)
