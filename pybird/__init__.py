@@ -715,24 +715,27 @@ class PyBird:
         sock.connect(self.socket_file)
         sock.send(query)
 
-        data = b""
+        data = []
 
         while True:
+            this_read = sock.recv(1024 * 1024)
+            if not this_read:
+                raise ValueError("Could not read additional data from BIRD")
+            data.append(this_read)
+            if len(this_read) > 256:
+                tail = this_read[-256:].decode("utf-8")
+            else:
+                tail = b"".join(data[-2:])[-256:].decode("utf-8")
             if any(
                 [
-                    data.find(f"\n{code:04}".encode()) != -1
+                    tail.find(f"\n{code:04}") != -1
                     for code in self.error_fields + self.success_fields
                 ]
             ):
                 break
-            this_read = sock.recv(1024)
-            if not this_read:
-                self.log.debug(data)
-                raise ValueError("Could not read additional data from BIRD")
-            data += this_read
 
         sock.close()
-        return data.decode("utf-8")
+        return b"".join(data).decode("utf-8")
 
     def _clean_input(self, inp):
         """Clean the input string of anything not plain alphanumeric chars,
