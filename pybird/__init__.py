@@ -48,9 +48,14 @@ class PyBird:
         return self._write_file(data, self.config_file)
 
     def commit_config(self):
-        return
+        return self.configure()
 
     def check_config(self):
+        """Check configuration without applying it.
+
+        Raise ValueError with the original text of the error,
+        return None for success.
+        """
         query = "configure check"
         data = self._send_query(query)
         if not self.socket_file:
