@@ -710,8 +710,8 @@ class PyBird:
         """
         cmd = f"{self.bird_cmd} -v -s {self.socket_file} '{query}'"
         res = self._remote_cmd(cmd)
-        res += "0000\n"
-        return res
+        res += b"0000\n"
+        return res.decode("utf-8")
 
     def _socket_query(self, query):
         """Open a socket to the BIRD control socket, send the query and get
