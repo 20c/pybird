@@ -16,7 +16,6 @@ class PyBird:
         socket_file,
         hostname=None,
         user=None,
-        password=None,
         config_file=None,
         bird_cmd=None,
     ):
@@ -25,7 +24,6 @@ class PyBird:
         self.socket_file = socket_file
         self.hostname = hostname
         self.user = user
-        self.password = password
         self.config_file = config_file
         if not bird_cmd:
             self.bird_cmd = "birdc"
@@ -672,7 +670,9 @@ class PyBird:
 
     def _remote_cmd(self, cmd, inp=None):
         to = f"{self.user}@{self.hostname}"
-        proc = Popen(["ssh", to, cmd], stdin=PIPE, stdout=PIPE)
+        proc = Popen(
+            ["ssh", "-o PasswordAuthentication=no", to, cmd], stdin=PIPE, stdout=PIPE
+        )
         res = proc.communicate(input=inp)[0]
         return res
 
