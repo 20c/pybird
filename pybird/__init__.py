@@ -46,9 +46,14 @@ class PyBird:
         return self._write_file(data, self.config_file)
 
     def commit_config(self):
-        return
+        return self.configure()
 
     def check_config(self):
+        """Check configuration without applying it.
+
+        Raise ValueError with the original text of the error,
+        return None for success.
+        """
         query = "configure check"
         data = self._send_query(query)
         if not self.socket_file:
@@ -705,8 +710,8 @@ class PyBird:
         """
         cmd = f"{self.bird_cmd} -v -s {self.socket_file} '{query}'"
         res = self._remote_cmd(cmd)
-        res += "0000\n"
-        return res
+        res += b"0000\n"
+        return res.decode("utf-8")
 
     def _socket_query(self, query):
         """Open a socket to the BIRD control socket, send the query and get
