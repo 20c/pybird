@@ -1,19 +1,14 @@
 # Changelog
 
-
 ## Unreleased
 ### Added
 - Python 3.7, 3.8, 3.9, 3.10 support (#21)
+- BIRD 2 compatibility
+### Fixed
+- all tests are fixed and run again (on MacOS and Ubuntu Linux)
+- remote connections over SSH
 ### Removed
 - Support for Python versions older than 3.7 (#21)
-
-
-## 1.1.2
-### Added
-- bird2 compatibility
-### Fixed
-- all tests are fixed and run again (on MacOS and Debian 11)
-
 
 ## 1.1.1
 ### Added
