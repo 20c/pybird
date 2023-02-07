@@ -34,7 +34,6 @@ class MockBirdTestBase(unittest.TestCase):
         self._send_query("terminate mockserver")
 
     def _send_query(self, query):
-
         if not isinstance(query, bytes):
             query = query.encode("utf-8")
 

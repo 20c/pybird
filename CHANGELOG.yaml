@@ -1,20 +1,3 @@
-1.1.0:
-  added:
-  - config_file, get_config()
-  - bird_cmd
-  - 'peer fields: description, address, asn'
-  - 'route fields: interface, source, time'
-  - 'status fields: version'
-  - parsing test framework
-  fixed:
-  - handle date format for newer bird
-1.1.1:
-  added:
-  - better debug logging for actual output
-  changed:
-  - get_routes returns []
-  fixed:
-  - regex str warnings
 Unreleased:
   added:
   - Python 3.7, 3.8, 3.9, 3.10 support (#21)
@@ -27,3 +10,21 @@ Unreleased:
   removed:
   - Support for Python versions older than 3.7 (#21)
   security: []
+  
+1.1.1:
+  added:
+  - better debug logging for actual output
+  changed:
+  - get_routes returns []
+  fixed:
+  - regex str warnings
+1.1.0:
+  added:
+  - config_file, get_config()
+  - bird_cmd
+  - 'peer fields: description, address, asn'
+  - 'route fields: interface, source, time'
+  - 'status fields: version'
+  - parsing test framework
+  fixed:
+  - handle date format for newer bird
