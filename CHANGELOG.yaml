@@ -10,7 +10,7 @@ Unreleased:
   removed:
   - Support for Python versions older than 3.7 (#21)
   security: []
-  
+
 1.1.1:
   added:
   - better debug logging for actual output
