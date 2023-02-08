@@ -4,6 +4,7 @@
 [![PyPI](https://img.shields.io/pypi/pyversions/pybird.svg?maxAge=600)](https://pypi.python.org/pypi/pybird)
 [![Tests](https://github.com/20c/pybird/workflows/tests/badge.svg)](https://github.com/20c/confu)
 [![Codecov](https://img.shields.io/codecov/c/github/20c/pybird/main.svg?maxAge=3600)](https://codecov.io/github/20c/pybird)
+[![CodeQL](https://github.com/20c/pybird/actions/workflows/codeql.yml/badge.svg)](https://github.com/20c/pybird/actions/workflows/codeql.yml)
 
 BIRD interface handler for Python
 
