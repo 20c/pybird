@@ -1,6 +1,10 @@
 # Changelog
 
+
 ## Unreleased
+
+
+## 1.2.0
 ### Added
 - Python 3.7, 3.8, 3.9, 3.10 support (#21)
 - BIRD 2 compatibility
@@ -9,6 +13,7 @@
 - remote connections over SSH
 ### Removed
 - Support for Python versions older than 3.7 (#21)
+
 
 ## 1.1.1
 ### Added

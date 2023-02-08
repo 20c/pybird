@@ -43,7 +43,8 @@ mkdocs = "^1.2.3"
 pymdgen = "^1"
 
 # ctl
-ctl = ">=1"
+# ctl = ">=1"
+ctl = { git = "https://github.com/20c/ctl.git", branch = "prep-release" }
 
 [tool.poetry.extras]
 docs = ["markdown-include", "mkdocs", "pymdgen"]
