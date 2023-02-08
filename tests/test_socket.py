@@ -307,6 +307,7 @@ class MockBird(Thread):
         try:
             os.remove(socket_file)
         except OSError:
+            # ignore if socket file does not exist
             pass
         self.socket.bind(socket_file)
         self.socket.listen(1)

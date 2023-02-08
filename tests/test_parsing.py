@@ -18,12 +18,4 @@ def test_parse_route_data(bird, data_parse_route_data):
 
 
 # pytest doesn't load fixtures at runtime
-# def make_parse_test(name):
-#    def func(request, bird):
-#        data_parse_routes = request.getfixturevalue(name)
-#        data = bird._parse_route_data(data_parse_routes.input)
-#        filedata.dump(data)
-#        assert data_parse_routes.expected == data
-#    return func
-#
-# test_parse_routes = make_parse_test('data_parse_routes')
+# so we can't use def make_parse_test(name)
