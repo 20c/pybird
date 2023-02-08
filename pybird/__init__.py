@@ -170,8 +170,6 @@ class PyBird:
         else:
             return data
 
-        return None
-
     def configure(self, soft=False, timeout=0):
         """
         birdc configure command
