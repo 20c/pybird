@@ -34,7 +34,6 @@ class MockBirdTestBase(unittest.TestCase):
         self._send_query("terminate mockserver")
 
     def _send_query(self, query):
-
         if not isinstance(query, bytes):
             query = query.encode("utf-8")
 
@@ -308,6 +307,7 @@ class MockBird(Thread):
         try:
             os.remove(socket_file)
         except OSError:
+            # ignore if socket file does not exist
             pass
         self.socket.bind(socket_file)
         self.socket.listen(1)

@@ -62,6 +62,7 @@ class PyBird:
         err = self._parse_configure(data)
         if err:
             raise ValueError(err)
+        return None
 
     def get_bird_status(self):
         """Get the status of the BIRD instance. Returns a dict with keys:
@@ -151,7 +152,7 @@ class PyBird:
                 return line
 
             elif fieldno in self.success_fields:
-                return
+                return None
         raise ValueError("unable to parse configure response")
 
     def _parse_router_status_line(self, line, parse_date=False):

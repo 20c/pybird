@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pybird"
-version = "1.1.2"
+version = "1.2.0"
 description = "BIRD interface handler for Python"
 readme = "README.md"
 repository = "https://github.com/20c/pybird"
@@ -19,27 +19,33 @@ packages = [{ include = "pybird" }]
 
 [tool.poetry.dependencies]
 python = "^3.7"
-future = "^0.18.2"
-ctl = "^1.0.0"
 
 [tool.poetry.dev-dependencies]
-pytest = "^7.1.2"
-pytest-cov = "^3.0.0"
-tox = "^3.25.1"
+# testing
+codecov = ">=2"
+coverage = ">=5"
+pytest = ">=6"
+pytest-cov = "*"
+tox = ">=3.25.1"
 tox-gh-actions = ">=2.9.1"
 
-# lint
-black = { version = ">=20", allow-prereleases = true }
-isort = "^5.7.0"
-flake8 = "^3.8.4"
-mypy = "^0.950"
-pre-commit = "^2.13"
-pyupgrade = "^2.19.4"
+# linting
+black = ">=20"
+isort = ">=5.7"
+flake8 = ">=3.8"
+mypy = ">=0.950"
+pre-commit = ">=2.13"
+pyupgrade = ">=2.19"
 
 # docs
 markdown-include = ">=0.5"
 mkdocs = "^1.2.3"
-pymdgen = "^1.0.0"
+pymdgen = "^1"
+
+# ctl
+# ctl = ">=1"
+ctl = { git = "https://github.com/20c/ctl.git", branch = "prep-release" }
+twine = ">=3"
 
 [tool.poetry.extras]
 docs = ["markdown-include", "mkdocs", "pymdgen"]
