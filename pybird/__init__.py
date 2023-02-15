@@ -183,8 +183,10 @@ class PyBird:
         if err:
             raise ValueError(err)
 
-    def get_routes(self, prefix=None, peer=None):
+    def get_routes(self, table=None, prefix=None, peer=None):
         query = "show route all"
+        if table:
+            query += f" table {table}"
         if prefix:
             query += f" for {prefix}"
         if peer:
