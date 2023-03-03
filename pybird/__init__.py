@@ -32,7 +32,7 @@ class PyBird:
 
         self.clean_input_re = re.compile(r"\W+")
         self.field_number_re = re.compile(r"^(\d+)[ -]")
-        self.routes_field_re = re.compile(r"(\d+) imported,.* (\d+) exported")
+        self.routes_field_re = re.compile(r"(\d+) imported,.* (\d+) filtered,.* (\d+) exported,.* (\d+) preferred")
         self.log = logging.getLogger(__name__)
 
     def get_config(self):
@@ -191,6 +191,32 @@ class PyBird:
             query += f" for {prefix}"
         if peer:
             query += f" protocol {peer}"
+
+        data = self._send_query(query)
+        return self._parse_route_data(data)
+
+    def get_routes_export(self, export, table=None, prefix=None, peer=None):
+        query = "show route all"
+        if table:
+            query += f" table {table}"
+        if prefix:
+            query += f" for {prefix}"
+        if peer:
+            query += f" protocol {peer}"
+        if export:
+            query += f" export {export}"
+
+        data = self._send_query(query)
+        return self._parse_route_data(data)
+
+    def get_routes_filtered(self, table=None, peer=None):
+        query = "show route all"
+        if table:
+            query += f" table {table}"
+        if peer:
+            query += f" protocol {peer}"
+        query += " filtered"
+
         data = self._send_query(query)
         return self._parse_route_data(data)
 
@@ -366,11 +392,16 @@ class PyBird:
             else:
                 # handle [BGP.atomic_aggr:]
                 key = parts[0].strip(":")
-                value = True
+                value = ""
 
+            # if key is "community:" then it's empty, case covered above.
+            # If it is just "community" - means it's not empty, case covered below
             if key == "community":
                 # convert (8954,220) (8954,620) to 8954:220 8954:620
                 value = value.replace(",", ":").replace("(", "").replace(")", "")
+            if key == "ext_community":
+                # convert (rt, 8954, 220) to rt:8954:220
+                value = value.replace(", ", ":").replace("(", "").replace(")", "")
 
             attributes[key] = value
 
@@ -542,7 +573,6 @@ class PyBird:
             "source address": "source",
         }
         lineiterator = iter(peer_detail_raw)
-
         for line in lineiterator:
             line = line.strip()
             try:
@@ -556,6 +586,8 @@ class PyBird:
                 routes = self.routes_field_re.findall(value)[0]
                 result["routes_imported"] = int(routes[0])
                 result["routes_exported"] = int(routes[1])
+                result["routes_filtered"] = int(routes[2])
+                result["routes_preferred"] = int(routes[3])
 
             if field.lower() in route_change_fields:
                 (received, rejected, filtered, ignored, accepted) = value.split()
