@@ -8,7 +8,7 @@ from subprocess import PIPE, Popen
 class PyBird:
     # BIRD reply codes: https://github.com/CZ-NIC/bird/blob/6c11dbcf28faa145cfb7310310a2a261fd4dd1f2/doc/reply_codes
     ignored_field_numbers = (0, 1, 13, 1008, 2002, 9001)
-    error_fields = (13, 19, 8001, 8002, 8003, 9000, 9001, 9002)
+    error_fields = (13, 19, 8001, 8002, 8003, 8005, 9000, 9001, 9002)
     success_fields = (0, 3, 4, 18, 20)
 
     def __init__(
@@ -199,24 +199,24 @@ class PyBird:
         data = self._send_query(query)
         return self._parse_route_data(data)
 
-    def get_routes_export(self, export, table=None, prefix=None, peer=None):
+    def get_routes_export(self, table=None, prefix=None, peer=None):
         query = "show route all"
         if table:
             query += f" table {table}"
         if prefix:
             query += f" for {prefix}"
         if peer:
-            query += f" protocol {peer}"
-        if export:
-            query += f" export {export}"
+            query += f" export {peer}"
 
         data = self._send_query(query)
         return self._parse_route_data(data)
 
-    def get_routes_filtered(self, table=None, peer=None):
+    def get_routes_filtered(self, table=None, prefix=None, peer=None):
         query = "show route all"
         if table:
             query += f" table {table}"
+        if prefix:
+            query += f" for {prefix}"
         if peer:
             query += f" protocol {peer}"
         query += " filtered"
@@ -354,7 +354,7 @@ class PyBird:
         return re.compile(
             r"(?P<prefix>[a-f0-9\.:\/]+)?\s+"
             r"(?:via\s+(?P<peer>[^\s]+) on (?P<interface>[^\s]+)|(?:\w+)?)?\s*"
-            r"\[(?P<source>[^\s]+) (?P<time>[^\]\s]+)(?: from (?P<peer2>[^\s]+))?\]"
+            r"\[(?P<source>[^\s]+) (?P<time>[^\]\s]+)(?: from (?P<peer2>[^\s]+))?\] (?P<best>\*)?"
         )
 
     def _parse_route_summary(self, line):
