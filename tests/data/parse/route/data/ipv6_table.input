@@ -1,0 +1,40 @@
+0001 BIRD 2.0.7 ready.
+1007-Table master4:
+     49.14.107.0/24       unreachable [eqam7_4 2023-12-29 from 89.188.4.16] * (100) [AS45271i]
+1008-   Type: BGP univ
+1012-   BGP.origin: IGP
+        BGP.as_path: 2914 3491 55644 45271
+        BGP.next_hop: 89.188.4.16
+        BGP.med: 1
+        BGP.local_pref: 210
+        BGP.atomic_aggr:
+        BGP.aggregator: 10.100.230.241 AS65010
+        BGP.community: (31477,204) (31477,2600)
+1007-181.123.200.0/22     unreachable [eqam7_4 2023-12-29 from 89.188.4.16] * (100) [AS23201i]
+1008-   Type: BGP univ
+1012-   BGP.origin: IGP
+        BGP.as_path: 1299 6762 28008 23201
+        BGP.next_hop: 89.188.4.16
+        BGP.med: 1
+        BGP.local_pref: 210
+        BGP.community: (31477,203) (31477,2700)
+        BGP.originator_id: 89.188.4.5
+        BGP.cluster_list: 89.188.4.16
+1007-
+     Table master6:
+     2400:a400::/32       unreachable [eqam7_6 2023-12-29 from 2a01:1b0:1::16] * (100) [AS4613i]
+1008-   Type: BGP univ
+1012-   BGP.origin: IGP
+        BGP.as_path: 6939 15412 142505 141047 24550 45157 4613 4613
+        BGP.next_hop: 2a01:1b0:1::16
+        BGP.med: 0
+        BGP.local_pref: 500
+        BGP.community: (31477,202) (31477,2300) (31477,2320)
+1007-240a:ae0a::/32       unreachable [eqam7_6 2023-12-29 from 2a01:1b0:1::16] * (100) [AS146244i]
+1008-   Type: BGP univ
+1012-   BGP.origin: IGP
+        BGP.as_path: 6939 23911 38255 146244
+        BGP.next_hop: 2a01:1b0:1::16
+        BGP.med: 0
+        BGP.local_pref: 500
+        BGP.community: (31477,202) (31477,2300) (31477,2320)

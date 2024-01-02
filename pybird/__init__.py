@@ -3,6 +3,7 @@ import re
 import socket
 from datetime import datetime, timedelta
 from subprocess import PIPE, Popen
+from more_itertools import peekable
 
 
 class PyBird:
@@ -262,30 +263,37 @@ class PyBird:
         [....]
         0000
         """
-        lines = data.splitlines()
+        splitted = data.splitlines()
+        lines = peekable(splitted)
         routes = []
 
         route_summary = None
 
-        self.log.debug("PyBird: parse route data: lines=%d", len(lines))
-        line_counter = -1
-        while line_counter < len(lines) - 1:
-            line_counter += 1
-            line = lines[line_counter].strip()
+        self.log.debug("PyBird: parse route data: lines=%d", len(splitted))
+        for line in lines:
             self.log.debug("PyBird: parse route data: %s", line)
+
+            # A line starts vwith either a space or a number. If it is a number,
+            # it is a new block, if it is a space, it belongs to the previous number.
+            # At this point it should not be a space, but if it is, log and skip it.
             (field_number, line) = self._extract_field_number(line)
+            if None == field_number:
+                self.log.debug("PyBird: WARNING: Line star with unexpected character, skipping")
+                continue
+
+            # Collect all data lines
+            datablock = [ line.strip() ]
+            while lines.peek("default").startswith(" "):
+                self.log.debug("PyBird: Collecting field %s data line: %s", (field_number, lines.peek()))
+                datablock.append(next(lines).strip())
 
             if field_number in self.ignored_field_numbers:
                 continue
 
             if field_number == 1007:
-                try:
-                    route_summary = self._parse_route_summary(line)
-                except ValueError:
-                    # bird2 sends route summary on a new line
-                    line_counter += 1
-                    line = lines[line_counter].strip()
-                    route_summary = self._parse_route_summary(line)
+                # As far as foreseen, the info is always on the last line in the datablock.
+                # Allso, if desired, here is the place to to extract the tablename.
+                route_summary = self._parse_route_summary(datablock[-1])
 
             route_detail = None
 
@@ -294,17 +302,7 @@ class PyBird:
                     # This is not detail of a BGP route
                     continue
 
-                # A route detail spans multiple lines, read them all
-                route_detail_raw = []
-                while "BGP." in line:
-                    route_detail_raw.append(line)
-                    line_counter += 1
-                    line = lines[line_counter]
-                    self.log.debug("PyBird: parse route data: %s", line)
-                # this loop will have walked a bit too far, correct it
-                line_counter -= 1
-
-                route_detail = self._parse_route_detail(route_detail_raw)
+                route_detail = self._parse_route_detail(datablock)
 
                 # Save the summary+detail info in our result
                 route_detail.update(route_summary)
