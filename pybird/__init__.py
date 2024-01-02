@@ -267,7 +267,7 @@ class PyBird:
         lines = peekable(splitted)
         routes = []
 
-        route_summar = None
+        route_summary = None
 
         self.log.debug("PyBird: parse route data: lines=%d", len(splitted))
         for line in lines:
