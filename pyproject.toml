@@ -19,6 +19,7 @@ packages = [{ include = "pybird" }]
 
 [tool.poetry.dependencies]
 python = "^3.7"
+mote_itertools = "*"
 
 [tool.poetry.dev-dependencies]
 # testing
